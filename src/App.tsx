@@ -1,26 +1,211 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+import {
+  Box,
+  Checkbox,
+  Container,
+  Grid,
+  IconButton,
+  Input,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  OutlinedInput,
+  Typography,
+  styled,
+} from '@mui/material';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-function App() {
+interface Language {
+  nativeLang: string;
+  targetLang: string;
+  checked: boolean;
+}
+
+type FocusFlag = 'off' | 'left' | 'right';
+
+const StrikethroughInput = styled(OutlinedInput)(
+  ({ strikethru }: { strikethru: boolean }) => ({
+    textDecoration: strikethru ? 'line-through' : 'none',
+  })
+);
+
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <Container maxWidth="md">
+      <Box sx={{ my: 4 }} alignItems="center" justifyContent="center">
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          textAlign={'center'}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          Babel List
+        </Typography>
+        <CheckboxList />
+      </Box>
+    </Container>
   );
 }
 
-export default App;
+function CheckboxList() {
+  const [list, setList] = useState<Language[]>([
+    { nativeLang: 'Cheese', targetLang: 'チーズ', checked: false },
+    { nativeLang: 'Milk', targetLang: 'ミルク', checked: false },
+    { nativeLang: 'Chocolate', targetLang: 'チョコ', checked: false },
+  ]);
+
+  // Input references for focus()
+
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [focusFlag, setFocusFlag] = useState<FocusFlag>('off');
+
+  useEffect(() => {
+    const index: number = currentIndex;
+    switch (focusFlag) {
+      case 'off':
+        break;
+      case 'left':
+        inputRefs.current[index + 1]?.querySelector('input')?.focus();
+        break;
+      case 'right':
+        inputRefs2.current[index + 1]
+          ?.querySelector('input')
+          ?.focus();
+        break;
+    }
+    setFocusFlag('off');
+  }, [currentIndex, focusFlag]);
+
+  const inputRefs = useRef<Array<HTMLInputElement>>([]);
+  const inputRefs2 = useRef<Array<HTMLInputElement>>([]);
+
+  // Other functions
+
+  const handleToggle = (index: number) => () => {
+    const newList = [...list];
+    newList[index].checked = !newList[index].checked;
+    setList(newList);
+  };
+
+  const handleListChange = (newList: Language[]) => {
+    setList(newList);
+  };
+
+  const addListItem = (prevList: Language[]) => {
+    setList((prevList) => [
+      ...prevList,
+      { nativeLang: '', targetLang: '', checked: false },
+    ]);
+  };
+
+  const removeItem = (index: number) => () => {
+    setList((prevList) => {
+      const newList = [...prevList];
+      newList.splice(index, 1);
+      return newList;
+    });
+  };
+
+  const handleKeyPress =
+    (index: number, flag: FocusFlag) =>
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Enter') {
+        console.log('Enter key pressed');
+        setList((prevList) => {
+          const blankLine = {
+            nativeLang: '',
+            targetLang: '',
+            checked: false,
+          };
+          const newList = [...prevList];
+          newList.splice(index + 1, 0, blankLine);
+          return newList;
+        });
+        setCurrentIndex(index);
+        setFocusFlag(flag);
+      }
+    };
+
+  return (
+    <Box display="flex" justifyContent="center" alignItems="center">
+      <List
+        sx={{
+          width: 'fit-content',
+          maxWidth: 720,
+          bgcolor: 'background.paper',
+        }}
+      >
+        {list.map((item, index) => {
+          const labelId = `checkbox-list-label-${item.checked}`;
+
+          return (
+            <ListItem key={index} disablePadding>
+              <ListItem role={undefined} dense>
+                <StrikethroughInput
+                  value={item.nativeLang}
+                  size="small"
+                  //autoFocus={true}
+                  ref={(el) =>
+                    (inputRefs.current[index] =
+                      el as HTMLInputElement)
+                  }
+                  inputProps={{ 'aria-labelledby': labelId }}
+                  onKeyPress={handleKeyPress(index, 'left')}
+                  strikethru={item.checked}
+                  onChange={(e) => {
+                    const newList = [...list];
+                    newList[index].nativeLang = e.target.value;
+                    handleListChange(newList);
+                  }}
+                />
+                <StrikethroughInput
+                  value={item.targetLang}
+                  size="small"
+                  ref={(el) =>
+                    (inputRefs2.current[index] =
+                      el as HTMLInputElement)
+                  }
+                  inputProps={{ 'aria-labelledby': labelId }}
+                  onKeyPress={handleKeyPress(index, 'right')}
+                  strikethru={item.checked}
+                  onChange={(e) => {
+                    const newList = [...list];
+                    newList[index].targetLang = e.target.value;
+                    handleListChange(newList);
+                  }}
+                />
+                <Checkbox
+                  checked={item.checked}
+                  onClick={handleToggle(index)}
+                  tabIndex={-1}
+                  inputProps={{ 'aria-labelledby': labelId }}
+                />
+                <IconButton
+                  edge="end"
+                  aria-label="comments"
+                  onClick={removeItem(index)}
+                >
+                  <RemoveCircleOutlineIcon />
+                </IconButton>
+              </ListItem>
+            </ListItem>
+          );
+        })}
+        <ListItem alignItems="center">
+          <IconButton onClick={() => addListItem(list)}>
+            <AddCircleOutlineIcon />
+          </IconButton>
+        </ListItem>
+      </List>
+    </Box>
+  );
+}
