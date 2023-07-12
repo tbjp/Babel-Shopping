@@ -1,48 +1,45 @@
-import { DeepL } from 'deepl-client';
-
-interface TranslationProps {
-  sourceLanguage: string;
-  targetLanguage: string;
-  text: string;
+export interface DeeplLanguage {
+  /**
+   * e.g. ES, DE, FR
+   */
+  language: string;
+  name: string;
 }
 
-interface TranslationState {
-  translatedText: string;
-}
-
-class Translation extends React.Component<
-  TranslationProps,
-  TranslationState
-> {
-  constructor(props: TranslationProps) {
-    super(props);
-    this.state = {
-      translatedText: '',
-    };
-  }
-
-  async componentDidMount() {
-    const deepL = new DeepL('YOUR_AUTH_KEY');
-    const translationResult = await deepL.translate({
-      text: this.props.text,
-      sourceLang: this.props.sourceLanguage,
-      targetLang: this.props.targetLanguage,
+export default function deepl(
+  authKey: string,
+  text: string,
+  languages: { source: DeeplLanguage; target: DeeplLanguage }
+) {
+  //authKey = process.env.REACT_APP_KEY;
+  const params = new URLSearchParams({
+    auth_key: authKey,
+    source_lang: languages.source.language,
+    target_lang: languages.target.language,
+    text: text,
+  });
+  console.log(params);
+  return fetch('https://api-free.deepl.com/v2/translate', {
+    method: 'POST',
+    body: params,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  })
+    .then((r) => r.json())
+    .then(
+      (response: {
+        translations: {
+          detected_source_language: string;
+          text: string;
+        }[];
+      }) =>
+        response.translations
+          .map((translation) => translation.text)
+          .join(' ')
+    )
+    .catch((error) => {
+      console.error(error);
+      return 'Could not translate';
     });
-    this.setState({
-      translatedText: translationResult.translations[0].text,
-    });
-  }
-
-  render() {
-    return (
-      <div>
-        <p>Source Language: {this.props.sourceLanguage}</p>
-        <p>Target Language: {this.props.targetLanguage}</p>
-        <p>Text: {this.props.text}</p>
-        <p>Translated Text: {this.state.translatedText}</p>
-      </div>
-    );
-  }
 }
-
-export default Translation;

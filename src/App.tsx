@@ -23,6 +23,9 @@ import {
 } from '@mui/material';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import TranslateIcon from '@mui/icons-material/Translate';
+import deepl, { DeeplLanguage } from './translate';
+import { flushSync } from 'react-dom';
 
 interface Language {
   nativeLang: string;
@@ -37,6 +40,8 @@ const StrikethroughInput = styled(OutlinedInput)(
     textDecoration: strikethru ? 'line-through' : 'none',
   })
 );
+
+const authKey: string = process.env.REACT_APP_KEY as string;
 
 export default function App() {
   return (
@@ -135,6 +140,26 @@ function CheckboxList() {
       }
     };
 
+  const initialLanguages: {
+    source: DeeplLanguage;
+    target: DeeplLanguage;
+  } = {
+    source: { language: 'EN', name: 'English' },
+    target: { language: 'JA', name: 'Japanese' },
+  };
+
+  const translateItem = (index: number) => () => {
+    const newList = [...list];
+    const item = newList[index];
+
+    //const translatedItem: Promise<string> =
+    deepl(authKey, item.nativeLang, initialLanguages).then((x) => {
+      item.targetLang = x;
+      newList.splice(index, 1, item);
+      setList(newList);
+    });
+  };
+
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
       <List
@@ -195,6 +220,9 @@ function CheckboxList() {
                   onClick={removeItem(index)}
                 >
                   <RemoveCircleOutlineIcon />
+                </IconButton>
+                <IconButton onClick={translateItem(index)}>
+                  <TranslateIcon />
                 </IconButton>
               </ListItem>
             </ListItem>
