@@ -1,4 +1,4 @@
-export interface DeeplLanguage {
+export interface apiLanguage {
   /**
    * e.g. ES, DE, FR
    */
@@ -6,10 +6,10 @@ export interface DeeplLanguage {
   name: string;
 }
 
-export default function deepl(
+export function deepl(
   authKey: string,
   text: string,
-  languages: { source: DeeplLanguage; target: DeeplLanguage }
+  languages: { source: apiLanguage; target: apiLanguage }
 ) {
   //authKey = process.env.REACT_APP_KEY;
   const params = new URLSearchParams({
@@ -38,6 +38,48 @@ export default function deepl(
           .map((translation) => translation.text)
           .join(' ')
     )
+    .catch((error) => {
+      console.error(error);
+      return 'Could not translate';
+    });
+}
+
+export default function azureTranslate(
+  authKey: string,
+  text: string,
+  source: string,
+  target: string
+) {
+  let endpoint = 'https://api.cognitive.microsofttranslator.com';
+
+  // location, also known as region.
+  // required if you're using a multi-service or regional (not global) resource. It can be found in the Azure portal on the Keys and Endpoint page.
+  const location = 'japaneast';
+  const data = [
+    {
+      Text: text,
+    },
+  ];
+  return fetch(
+    endpoint +
+      '/translate?api-version=3.0&from=' +
+      source +
+      '&' +
+      'to=' +
+      target,
+    {
+      method: 'POST',
+      headers: {
+        'Ocp-Apim-Subscription-Key': authKey,
+        'Ocp-Apim-Subscription-Region': location,
+        'Content-type': 'application/json',
+        //'X-ClientTraceId': uuidv4().toString(),
+      },
+      body: JSON.stringify(data),
+    }
+  )
+    .then((r) => r.json())
+    .then((r) => r[0].translations[0].text)
     .catch((error) => {
       console.error(error);
       return 'Could not translate';
