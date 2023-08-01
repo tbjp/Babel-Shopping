@@ -9,9 +9,11 @@ import {
   Box,
   Checkbox,
   Container,
+  FormControl,
   Grid,
   IconButton,
   Input,
+  InputLabel,
   List,
   ListItem,
   ListItemButton,
@@ -25,7 +27,6 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import TranslateIcon from '@mui/icons-material/Translate';
 import azureTranslate from './translate';
-import azureTranslit from './transliterate';
 import dotenv from 'dotenv';
 
 interface Language {
@@ -219,23 +220,30 @@ function CheckboxList() {
                     handleListChange(newList);
                   }}
                 />
-                <StrikethroughInput
-                  value={item.targetLang}
-                  size="small"
-                  ref={(el) =>
-                    (inputRefs2.current[index] =
-                      el as HTMLInputElement)
-                  }
-                  inputProps={{ 'aria-labelledby': labelId }}
-                  onKeyPress={handleKeyPress(index, 'right')}
-                  strikethru={item.checked}
-                  onChange={(e) => {
-                    const newList = [...list];
-                    newList[index].targetLang = e.target.value;
-                    handleListChange(newList);
-                  }}
-                />
-                <StrikethroughInput
+                <FormControl>
+                  <InputLabel htmlFor="result-input">
+                    {item.translit}
+                  </InputLabel>
+                  <StrikethroughInput
+                    id="result-input"
+                    value={item.targetLang}
+                    size="small"
+                    label={item.translit}
+                    ref={(el) =>
+                      (inputRefs2.current[index] =
+                        el as HTMLInputElement)
+                    }
+                    inputProps={{ 'aria-labelledby': labelId }}
+                    onKeyPress={handleKeyPress(index, 'right')}
+                    strikethru={item.checked}
+                    onChange={(e) => {
+                      const newList = [...list];
+                      newList[index].targetLang = e.target.value;
+                      handleListChange(newList);
+                    }}
+                  />
+                </FormControl>
+                {/* <StrikethroughInput
                   value={item.translit}
                   size="small"
                   ref={(el) =>
@@ -250,7 +258,7 @@ function CheckboxList() {
                     newList[index].translit = e.target.value;
                     handleListChange(newList);
                   }}
-                />
+                /> */}
                 <Checkbox
                   checked={item.checked}
                   onClick={handleToggle(index)}
