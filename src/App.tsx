@@ -24,15 +24,14 @@ import {
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import TranslateIcon from '@mui/icons-material/Translate';
-import azureTranslate, { apiLanguage, deepl } from './translate';
-import convertJapanese from './kana';
+import azureTranslate from './translate';
+import azureTranslit from './transliterate';
 import dotenv from 'dotenv';
-// import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
 
 interface Language {
   nativeLang: string;
   targetLang: string;
-  kana: string;
+  translit: string;
   checked: boolean;
 }
 
@@ -46,7 +45,6 @@ const StrikethroughInput = styled(OutlinedInput)(
   })
 );
 
-//const authKey: string = process.env.REACT_APP_KEY as string;
 const authKey: string = process.env.REACT_APP_AZURE as string;
 
 export default function App() {
@@ -68,26 +66,35 @@ export default function App() {
 }
 
 function CheckboxList() {
-  const [list, setList] = useState<Language[]>([
-    {
-      nativeLang: 'Cheese',
-      targetLang: 'チーズ',
-      kana: '',
-      checked: false,
-    },
-    {
-      nativeLang: 'Milk',
-      targetLang: 'ミルク',
-      kana: '',
-      checked: false,
-    },
-    {
-      nativeLang: 'Chocolate',
-      targetLang: 'チョコ',
-      kana: '',
-      checked: false,
-    },
-  ]);
+  const [list, setList] = useState<Language[]>(() => {
+    const storedLanguage = localStorage.getItem('user-list');
+    return storedLanguage
+      ? JSON.parse(storedLanguage)
+      : [
+          {
+            nativeLang: 'Cheese',
+            targetLang: 'チーズ',
+            translit: '',
+            checked: false,
+          },
+          {
+            nativeLang: 'Milk',
+            targetLang: 'ミルク',
+            translit: '',
+            checked: false,
+          },
+          {
+            nativeLang: 'Chocolate',
+            targetLang: 'チョコ',
+            translit: '',
+            checked: false,
+          },
+        ];
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('user-list', JSON.stringify(list));
+  }, [list]);
 
   // Input references for focus()
 
@@ -130,7 +137,12 @@ function CheckboxList() {
   const addListItem = (prevList: Language[]) => {
     setList((prevList) => [
       ...prevList,
-      { nativeLang: '', targetLang: '', kana: '', checked: false },
+      {
+        nativeLang: '',
+        targetLang: '',
+        translit: '',
+        checked: false,
+      },
     ]);
   };
 
@@ -151,7 +163,7 @@ function CheckboxList() {
           const blankLine = {
             nativeLang: '',
             targetLang: '',
-            kana: '',
+            translit: '',
             checked: false,
           };
           const newList = [...prevList];
@@ -163,37 +175,17 @@ function CheckboxList() {
       }
     };
 
-  const initialLanguages: {
-    source: apiLanguage;
-    target: apiLanguage;
-  } = {
-    source: { language: 'EN', name: 'English' },
-    target: { language: 'JA', name: 'Japanese' },
-  };
-
   const translateItem = (index: number) => () => {
     const newList = [...list];
     const item = newList[index];
     azureTranslate(authKey, item.nativeLang, 'en', 'ja').then((x) => {
-      item.targetLang = x;
+      item.targetLang = x[0].translations[0].text;
+      item.translit = x[0].translations[0].transliteration.text;
       newList.splice(index, 1, item);
       setList(newList);
       return x;
     });
-    // .then((x) => {
-    //   convertJapanese(x).then((kuroshiroResult) => {
-    //    item.kana = kuroshiroResult;
-    //     newList.splice(index, 1, item);
-    //     setList(newList);
-    //   });
   };
-
-  function testKana() {
-    console.log('testKana called');
-    convertJapanese('犬').then((result) => {
-      console.log(result);
-    });
-  }
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
@@ -244,7 +236,7 @@ function CheckboxList() {
                   }}
                 />
                 <StrikethroughInput
-                  value={item.kana}
+                  value={item.translit}
                   size="small"
                   ref={(el) =>
                     (inputRefs3.current[index] =
@@ -255,7 +247,7 @@ function CheckboxList() {
                   strikethru={item.checked}
                   onChange={(e) => {
                     const newList = [...list];
-                    newList[index].kana = e.target.value;
+                    newList[index].translit = e.target.value;
                     handleListChange(newList);
                   }}
                 />

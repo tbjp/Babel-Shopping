@@ -6,43 +6,43 @@ export interface apiLanguage {
   name: string;
 }
 
-export function deepl(
-  authKey: string,
-  text: string,
-  languages: { source: apiLanguage; target: apiLanguage }
-) {
-  //authKey = process.env.REACT_APP_KEY;
-  const params = new URLSearchParams({
-    auth_key: authKey,
-    source_lang: languages.source.language,
-    target_lang: languages.target.language,
-    text: text,
-  });
-  console.log(params);
-  return fetch('https://api-free.deepl.com/v2/translate', {
-    method: 'POST',
-    body: params,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  })
-    .then((r) => r.json())
-    .then(
-      (response: {
-        translations: {
-          detected_source_language: string;
-          text: string;
-        }[];
-      }) =>
-        response.translations
-          .map((translation) => translation.text)
-          .join(' ')
-    )
-    .catch((error) => {
-      console.error(error);
-      return 'Could not translate';
-    });
-}
+// export function deepl(
+//   authKey: string,
+//   text: string,
+//   languages: { source: apiLanguage; target: apiLanguage }
+// ) {
+//   //authKey = process.env.REACT_APP_KEY;
+//   const params = new URLSearchParams({
+//     auth_key: authKey,
+//     source_lang: languages.source.language,
+//     target_lang: languages.target.language,
+//     text: text,
+//   });
+//   console.log(params);
+//   return fetch('https://api-free.deepl.com/v2/translate', {
+//     method: 'POST',
+//     body: params,
+//     headers: {
+//       'Content-Type': 'application/x-www-form-urlencoded',
+//     },
+//   })
+//     .then((r) => r.json())
+//     .then(
+//       (response: {
+//         translations: {
+//           detected_source_language: string;
+//           text: string;
+//         }[];
+//       }) =>
+//         response.translations
+//           .map((translation) => translation.text)
+//           .join(' ')
+//     )
+//     .catch((error) => {
+//       console.error(error);
+//       return 'Could not translate';
+//     });
+// }
 
 export default function azureTranslate(
   authKey: string,
@@ -60,28 +60,30 @@ export default function azureTranslate(
       Text: text,
     },
   ];
-  return fetch(
-    endpoint +
-      '/translate?api-version=3.0&from=' +
-      source +
-      '&' +
-      'to=' +
-      target,
-    {
-      method: 'POST',
-      headers: {
-        'Ocp-Apim-Subscription-Key': authKey,
-        'Ocp-Apim-Subscription-Region': location,
-        'Content-type': 'application/json',
-        //'X-ClientTraceId': uuidv4().toString(),
-      },
-      body: JSON.stringify(data),
-    }
-  )
-    .then((r) => r.json())
-    .then((r) => r[0].translations[0].text)
-    .catch((error) => {
-      console.error(error);
-      return 'Could not translate';
-    });
+  return (
+    fetch(
+      endpoint +
+        '/translate?api-version=3.0&from=' +
+        source +
+        '&to=' +
+        target +
+        '&toScript=latn',
+      {
+        method: 'POST',
+        headers: {
+          'Ocp-Apim-Subscription-Key': authKey,
+          'Ocp-Apim-Subscription-Region': location,
+          'Content-type': 'application/json',
+          //'X-ClientTraceId': uuidv4().toString(),
+        },
+        body: JSON.stringify(data),
+      }
+    )
+      .then((r) => r.json())
+      //.then((r) => r[0].translations[0].text)
+      .catch((error) => {
+        console.error(error);
+        return 'Could not translate';
+      })
+  );
 }
