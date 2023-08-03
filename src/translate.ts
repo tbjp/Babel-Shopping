@@ -6,45 +6,7 @@ export interface apiLanguage {
   name: string;
 }
 
-// export function deepl(
-//   authKey: string,
-//   text: string,
-//   languages: { source: apiLanguage; target: apiLanguage }
-// ) {
-//   //authKey = process.env.REACT_APP_KEY;
-//   const params = new URLSearchParams({
-//     auth_key: authKey,
-//     source_lang: languages.source.language,
-//     target_lang: languages.target.language,
-//     text: text,
-//   });
-//   console.log(params);
-//   return fetch('https://api-free.deepl.com/v2/translate', {
-//     method: 'POST',
-//     body: params,
-//     headers: {
-//       'Content-Type': 'application/x-www-form-urlencoded',
-//     },
-//   })
-//     .then((r) => r.json())
-//     .then(
-//       (response: {
-//         translations: {
-//           detected_source_language: string;
-//           text: string;
-//         }[];
-//       }) =>
-//         response.translations
-//           .map((translation) => translation.text)
-//           .join(' ')
-//     )
-//     .catch((error) => {
-//       console.error(error);
-//       return 'Could not translate';
-//     });
-// }
-
-export default function azureTranslate(
+export function azureTranslate(
   authKey: string,
   text: string,
   source: string,
@@ -83,7 +45,18 @@ export default function azureTranslate(
       //.then((r) => r[0].translations[0].text)
       .catch((error) => {
         console.error(error);
-        return 'Could not translate';
+        return 'Could not translate.';
       })
   );
+}
+
+export function azureLanguages() {
+  return fetch(
+    'https://api.cognitive.microsofttranslator.com/languages?api-version=3.0&scope=translation'
+  )
+    .then((r) => r.json())
+    .catch((error) => {
+      console.error(error);
+      return 'Could not retrieve language list.';
+    });
 }

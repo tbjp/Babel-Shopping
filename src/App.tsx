@@ -19,14 +19,16 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
   OutlinedInput,
+  Select,
   Typography,
   styled,
 } from '@mui/material';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import TranslateIcon from '@mui/icons-material/Translate';
-import azureTranslate from './translate';
+import { azureTranslate, azureLanguages } from './translate';
 import dotenv from 'dotenv';
 
 interface Language {
@@ -34,6 +36,19 @@ interface Language {
   targetLang: string;
   translit: string;
   checked: boolean;
+}
+
+interface Settings {
+  leftLang: string;
+  rightLang: string;
+}
+
+interface AvailableLangs {
+  [key: string]: {
+    name: string;
+    nativeName: string;
+    dir: string;
+  };
 }
 
 type FocusFlag = 'off' | 'left' | 'right';
@@ -49,6 +64,11 @@ const StrikethroughInput = styled(OutlinedInput)(
 const authKey: string = process.env.REACT_APP_AZURE as string;
 
 export default function App() {
+  const [settings, setSettings] = useState<Settings>({
+    leftLang: 'en',
+    rightLang: 'ja',
+  });
+
   return (
     <Container maxWidth="md">
       <Box sx={{ my: 4 }} alignItems="center" justifyContent="center">
@@ -60,13 +80,14 @@ export default function App() {
         >
           Babel List
         </Typography>
-        <CheckboxList />
+        <SettingsPanel settings={settings} />
+        <CheckboxList settings={settings} />
       </Box>
     </Container>
   );
 }
 
-function CheckboxList() {
+function CheckboxList({ settings }: { settings: Settings }) {
   const [list, setList] = useState<Language[]>(() => {
     const storedLanguage = localStorage.getItem('user-list');
     return storedLanguage
@@ -179,7 +200,12 @@ function CheckboxList() {
   const translateItem = (index: number) => () => {
     const newList = [...list];
     const item = newList[index];
-    azureTranslate(authKey, item.nativeLang, 'en', 'ja').then((x) => {
+    azureTranslate(
+      authKey,
+      item.nativeLang,
+      settings.leftLang,
+      settings.rightLang
+    ).then((x) => {
       item.targetLang = x[0].translations[0].text;
       item.translit = x[0].translations[0].transliteration.text;
       newList.splice(index, 1, item);
@@ -292,6 +318,39 @@ function CheckboxList() {
           </IconButton>
         </ListItem>
       </List>
+    </Box>
+  );
+}
+
+function SettingsPanel({ settings }: { settings: Settings }) {
+  return (
+    <Box display="flex" justifyContent="center" alignItems="center">
+      <FormControl>
+        <InputLabel id="l-lang">Left Language</InputLabel>
+        <Select
+          labelId="l-lang"
+          label="Left Language"
+          defaultValue={'en'}
+        >
+          {/* {availableLangs.map((item, index) => {
+          const labelId = `checkbox-list-label-${item.checked}`; */}
+          <MenuItem value="ja">Japanese</MenuItem>
+          <MenuItem value="en">English</MenuItem>
+        </Select>
+      </FormControl>
+      <FormControl>
+        <InputLabel id="r-lang">Right Language</InputLabel>
+        <Select
+          labelId="r-lang"
+          label="Right Language"
+          defaultValue={'ja'}
+        >
+          {/* {availableLangs.map((item, index) => {
+          const labelId = `checkbox-list-label-${item.checked}`; */}
+          <MenuItem value="ja">Japanese</MenuItem>
+          <MenuItem value="en">English</MenuItem>
+        </Select>
+      </FormControl>
     </Box>
   );
 }
