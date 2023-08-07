@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  createContext,
+  useContext,
+} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import '@fontsource/roboto/300.css';
@@ -22,6 +28,7 @@ import {
   MenuItem,
   OutlinedInput,
   Select,
+  SelectChangeEvent,
   Typography,
   styled,
 } from '@mui/material';
@@ -31,6 +38,7 @@ import TranslateIcon from '@mui/icons-material/Translate';
 import { azureTranslate, azureLanguages } from './translate';
 import dotenv from 'dotenv';
 
+// Types and Interfaces
 interface Language {
   nativeLang: string;
   targetLang: string;
@@ -43,6 +51,11 @@ interface Settings {
   rightLang: string;
 }
 
+type SettingsContextType = {
+  settings: Settings;
+  setSettings: (Settings: Settings) => void;
+};
+
 interface AvailableLangs {
   [key: string]: {
     name: string;
@@ -53,7 +66,18 @@ interface AvailableLangs {
 
 type FocusFlag = 'off' | 'left' | 'right';
 
-dotenv.config();
+const defaultSettings: Settings = {
+  leftLang: 'en',
+  rightLang: 'ja',
+};
+
+const SettingsContext = createContext<
+  SettingsContextType | undefined
+>(undefined);
+const useSettings = () =>
+  useContext(SettingsContext) as SettingsContextType;
+
+dotenv.config(); // For the secret key
 
 const StrikethroughInput = styled(OutlinedInput)(
   ({ strikethru }: { strikethru: boolean }) => ({
@@ -64,30 +88,33 @@ const StrikethroughInput = styled(OutlinedInput)(
 const authKey: string = process.env.REACT_APP_AZURE as string;
 
 export default function App() {
-  const [settings, setSettings] = useState<Settings>({
-    leftLang: 'en',
-    rightLang: 'ja',
-  });
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
 
   return (
-    <Container maxWidth="md">
-      <Box sx={{ my: 4 }} alignItems="center" justifyContent="center">
-        <Typography
-          variant="h4"
-          component="h1"
-          gutterBottom
-          textAlign={'center'}
+    <SettingsContext.Provider value={{ settings, setSettings }}>
+      <Container maxWidth="md">
+        <Box
+          sx={{ my: 4 }}
+          alignItems="center"
+          justifyContent="center"
         >
-          Babel List
-        </Typography>
-        <SettingsPanel settings={settings} />
-        <CheckboxList settings={settings} />
-      </Box>
-    </Container>
+          <Typography
+            variant="h4"
+            component="h1"
+            gutterBottom
+            textAlign={'center'}
+          >
+            Babel List
+          </Typography>
+          <SettingsPanel />
+          <CheckboxList />
+        </Box>
+      </Container>
+    </SettingsContext.Provider>
   );
 }
 
-function CheckboxList({ settings }: { settings: Settings }) {
+function CheckboxList() {
   const [list, setList] = useState<Language[]>(() => {
     const storedLanguage = localStorage.getItem('user-list');
     return storedLanguage
@@ -122,6 +149,7 @@ function CheckboxList({ settings }: { settings: Settings }) {
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [focusFlag, setFocusFlag] = useState<FocusFlag>('off');
+  const { settings, setSettings } = useSettings();
 
   useEffect(() => {
     const index: number = currentIndex;
@@ -322,7 +350,32 @@ function CheckboxList({ settings }: { settings: Settings }) {
   );
 }
 
-function SettingsPanel({ settings }: { settings: Settings }) {
+function SettingsPanel() {
+  const [languageList, setLanguageList] = useState<AvailableLangs>({
+    en: { name: 'English', nativeName: 'English', dir: 'ltr' },
+    ja: { name: 'Japanese', nativeName: '日本語', dir: 'ltr' },
+  });
+
+  const { settings, setSettings } = useSettings();
+
+  useEffect(() => {
+    azureLanguages().then((azureList) => {
+      setLanguageList(azureList.translation);
+      console.log(azureList.translation);
+    });
+  }, []);
+
+  const handleChange = (
+    settingId: string,
+    event: SelectChangeEvent
+  ) => {
+    const newSettings = { ...settings };
+    const keyTyped = settingId as keyof typeof newSettings;
+    newSettings[keyTyped] = event.target.value;
+    setSettings(newSettings);
+    console.log(event.target.value);
+  };
+
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
       <FormControl>
@@ -331,11 +384,15 @@ function SettingsPanel({ settings }: { settings: Settings }) {
           labelId="l-lang"
           label="Left Language"
           defaultValue={'en'}
+          onChange={(e) => handleChange('leftLang', e)}
         >
-          {/* {availableLangs.map((item, index) => {
-          const labelId = `checkbox-list-label-${item.checked}`; */}
-          <MenuItem value="ja">Japanese</MenuItem>
-          <MenuItem value="en">English</MenuItem>
+          {Object.keys(languageList).map((key, i) => {
+            return (
+              <MenuItem value={key} key={i}>
+                {languageList[key].name}
+              </MenuItem>
+            );
+          })}
         </Select>
       </FormControl>
       <FormControl>
@@ -344,11 +401,15 @@ function SettingsPanel({ settings }: { settings: Settings }) {
           labelId="r-lang"
           label="Right Language"
           defaultValue={'ja'}
+          onChange={(e) => handleChange('rightLang', e)}
         >
-          {/* {availableLangs.map((item, index) => {
-          const labelId = `checkbox-list-label-${item.checked}`; */}
-          <MenuItem value="ja">Japanese</MenuItem>
-          <MenuItem value="en">English</MenuItem>
+          {Object.keys(languageList).map((key, i) => {
+            return (
+              <MenuItem value={key} key={i}>
+                {languageList[key].name}
+              </MenuItem>
+            );
+          })}
         </Select>
       </FormControl>
     </Box>
