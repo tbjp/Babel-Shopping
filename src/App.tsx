@@ -239,17 +239,34 @@ function CheckboxList() {
   const translateItem = (index: number) => () => {
     const newList = [...list];
     const item = newList[index];
+    var text: string;
+    var fromLang: string;
+    var toLang: string;
+    var reverseFlag: boolean = false;
     // Need to check if string is empty before calling.
-    azureTranslate(
-      authKey,
-      item.nativeLang,
-      settings.leftLang,
-      settings.rightLang
-    ).then((x) => {
+    if (
+      item.targetLang.trim() === '' &&
+      item.nativeLang.trim() === ''
+    ) {
+      return;
+    } else if (item.nativeLang.trim() === '') {
+      text = item.targetLang.trim(); // For when left input is empty
+      fromLang = settings.rightLang;
+      toLang = settings.leftLang;
+      reverseFlag = true;
+    } else {
+      text = item.nativeLang.trim(); // For normal use
+      fromLang = settings.leftLang;
+      toLang = settings.rightLang;
+    }
+    azureTranslate(authKey, text, fromLang, toLang).then((x) => {
       console.log(x);
       if (x.error) {
+        // Handle no transliteration.
         item.targetLang = 'Language pair not available.';
         item.translit = '';
+      } else if (reverseFlag) {
+        item.nativeLang = x[0].translations[0].text;
       } else {
         item.targetLang = x[0].translations[0].text;
         if (x[0].translations[0].transliteration) {
