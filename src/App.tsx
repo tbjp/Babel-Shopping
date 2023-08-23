@@ -88,7 +88,18 @@ const StrikethroughInput = styled(OutlinedInput)(
 const authKey: string = process.env.REACT_APP_AZURE as string;
 
 export default function App() {
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [settings, setSettings] = useState<Settings>(() => {
+    console.log('Get settings from localStorage.');
+    const storedSettings = localStorage.getItem('user-settings');
+    return storedSettings
+      ? JSON.parse(storedSettings)
+      : defaultSettings;
+  });
+
+  React.useEffect(() => {
+    console.log('Write settings to localStorage.');
+    localStorage.setItem('user-settings', JSON.stringify(settings));
+  }, [settings]);
 
   return (
     <SettingsContext.Provider value={{ settings, setSettings }}>
@@ -116,9 +127,9 @@ export default function App() {
 
 function CheckboxList() {
   const [list, setList] = useState<Language[]>(() => {
-    const storedLanguage = localStorage.getItem('user-list');
-    return storedLanguage
-      ? JSON.parse(storedLanguage)
+    const storedList = localStorage.getItem('user-list');
+    return storedList
+      ? JSON.parse(storedList)
       : [
           {
             nativeLang: 'Cheese',
@@ -308,22 +319,6 @@ function CheckboxList() {
                     }}
                   />
                 </FormControl>
-                {/* <StrikethroughInput
-                  value={item.translit}
-                  size="small"
-                  ref={(el) =>
-                    (inputRefs3.current[index] =
-                      el as HTMLInputElement)
-                  }
-                  inputProps={{ 'aria-labelledby': labelId }}
-                  onKeyPress={handleKeyPress(index, 'right')}
-                  strikethru={item.checked}
-                  onChange={(e) => {
-                    const newList = [...list];
-                    newList[index].translit = e.target.value;
-                    handleListChange(newList);
-                  }}
-                /> */}
                 <Checkbox
                   checked={item.checked}
                   onClick={handleToggle(index)}
@@ -395,6 +390,7 @@ function SettingsPanel() {
           labelId="l-lang"
           label="Left Language"
           defaultValue={'en'}
+          value={settings.leftLang}
           onChange={(e) => handleChange('leftLang', e)}
         >
           {Object.keys(languageList).map((key, i) => {
@@ -412,6 +408,7 @@ function SettingsPanel() {
           labelId="r-lang"
           label="Right Language"
           defaultValue={'ja'}
+          value={settings.rightLang}
           onChange={(e) => handleChange('rightLang', e)}
         >
           {Object.keys(languageList).map((key, i) => {
