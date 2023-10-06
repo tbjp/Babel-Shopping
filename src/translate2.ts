@@ -7,7 +7,6 @@ export interface apiLanguage {
 }
 
 export function azureTranslate(
-  authKey: string,
   text: string,
   source: string,
   target: string
@@ -16,37 +15,39 @@ export function azureTranslate(
 
   // location, also known as region.
   // required if you're using a multi-service or regional (not global) resource. It can be found in the Azure portal on the Keys and Endpoint page.
-  const location = 'japaneast';
-  const data = [
+  //const location: String = 'japaneast';
+  const data: Object = [
     {
       Text: text,
     },
   ];
-  return (
-    fetch(
-      endpoint +
-        '/translate?api-version=3.0&from=' +
-        source +
-        '&to=' +
-        target +
-        '&toScript=latn',
-      {
-        method: 'POST',
-        headers: {
-          'Ocp-Apim-Subscription-Key': authKey,
-          'Ocp-Apim-Subscription-Region': location,
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      }
-    )
-      .then((r) => r.json())
-      //.then((r) => r[0].translations[0].text)
-      .catch((error) => {
-        console.error(error);
-        return 'Could not translate.';
-      })
-  );
+  const fetchInfo: String =
+    endpoint +
+    '/translate?api-version=3.0&from=' +
+    source +
+    '&to=' +
+    target +
+    '&toScript=latn';
+
+  const fetchObject: Object = {
+    fetchInfo: fetchInfo,
+    fetchBody: data,
+  };
+
+  console.log(fetchObject);
+
+  return fetch('http://localhost:8080/api/translate', {
+    method: 'POST',
+    body: JSON.stringify(fetchObject),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((r) => r.json())
+    .catch((error) => {
+      console.error(error);
+      return 'Could not translate.';
+    });
 }
 
 export function azureLanguages() {

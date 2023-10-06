@@ -35,8 +35,7 @@ import {
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import TranslateIcon from '@mui/icons-material/Translate';
-import { azureTranslate, azureLanguages } from './translate';
-import dotenv from 'dotenv';
+import { azureTranslate, azureLanguages } from './translate2';
 
 // Types and Interfaces
 interface Language {
@@ -77,15 +76,11 @@ const SettingsContext = createContext<
 const useSettings = () =>
   useContext(SettingsContext) as SettingsContextType;
 
-dotenv.config(); // For the secret key
-
 const StrikethroughInput = styled(OutlinedInput)(
   ({ strikethru }: { strikethru: boolean }) => ({
     textDecoration: strikethru ? 'line-through' : 'none',
   })
 );
-
-const authKey: string = process.env.REACT_APP_AZURE as string;
 
 export default function App() {
   const [settings, setSettings] = useState<Settings>(() => {
@@ -259,13 +254,14 @@ function CheckboxList() {
       fromLang = settings.leftLang;
       toLang = settings.rightLang;
     }
-    azureTranslate(authKey, text, fromLang, toLang).then((x) => {
+    azureTranslate(text, fromLang, toLang).then((x) => {
       console.log(x);
       if (x.error) {
         // Handle no transliteration.
         item.targetLang = 'Language pair not available.';
         item.translit = '';
       } else if (reverseFlag) {
+        // Missing transliteration from left side
         item.nativeLang = x[0].translations[0].text;
       } else {
         item.targetLang = x[0].translations[0].text;
@@ -279,6 +275,11 @@ function CheckboxList() {
       setList(newList);
       return x;
     });
+  };
+
+  const middleServerTest = () => {
+    console.log('Middle server test button clicked');
+    fetch('http://localhost:8080/test');
   };
 
   return (
@@ -360,11 +361,7 @@ function CheckboxList() {
           <IconButton onClick={() => addListItem(list)}>
             <AddCircleOutlineIcon />
           </IconButton>
-          <IconButton
-            onClick={() =>
-              azureTranslate(authKey, 'text', 'en', 'ja')
-            }
-          >
+          <IconButton onClick={() => middleServerTest()}>
             <TranslateIcon />
           </IconButton>
         </ListItem>
@@ -401,7 +398,7 @@ function SettingsPanel() {
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
-      <FormControl>
+      <FormControl size="small">
         <InputLabel id="l-lang">Left Language</InputLabel>
         <Select
           labelId="l-lang"
@@ -419,7 +416,7 @@ function SettingsPanel() {
           })}
         </Select>
       </FormControl>
-      <FormControl>
+      <FormControl size="small">
         <InputLabel id="r-lang">Right Language</InputLabel>
         <Select
           labelId="r-lang"
