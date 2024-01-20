@@ -1,3 +1,3 @@
 # Babel List App
 
-List translation app.
+Shopping list translation app.

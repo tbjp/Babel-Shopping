@@ -397,43 +397,45 @@ function SettingsPanel() {
   };
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center">
-      <FormControl size="small">
-        <InputLabel id="l-lang">Left Language</InputLabel>
-        <Select
-          labelId="l-lang"
-          label="Left Language"
-          defaultValue={'en'}
-          value={settings.leftLang}
-          onChange={(e) => handleChange('leftLang', e)}
-        >
-          {Object.keys(languageList).map((key, i) => {
-            return (
-              <MenuItem value={key} key={i}>
-                {languageList[key].name}
-              </MenuItem>
-            );
-          })}
-        </Select>
-      </FormControl>
-      <FormControl size="small">
-        <InputLabel id="r-lang">Right Language</InputLabel>
-        <Select
-          labelId="r-lang"
-          label="Right Language"
-          defaultValue={'ja'}
-          value={settings.rightLang}
-          onChange={(e) => handleChange('rightLang', e)}
-        >
-          {Object.keys(languageList).map((key, i) => {
-            return (
-              <MenuItem value={key} key={i}>
-                {languageList[key].name}
-              </MenuItem>
-            );
-          })}
-        </Select>
-      </FormControl>
-    </Box>
+    <Container maxWidth="sm">
+      <Box display="flex" justifyContent="center" alignItems="center">
+        <FormControl size="small" fullWidth>
+          <InputLabel id="l-lang">Left Language</InputLabel>
+          <Select
+            labelId="l-lang"
+            label="Left Language"
+            defaultValue={'en'}
+            value={settings.leftLang}
+            onChange={(e) => handleChange('leftLang', e)}
+          >
+            {Object.keys(languageList).map((key, i) => {
+              return (
+                <MenuItem value={key} key={i}>
+                  {languageList[key].name}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
+        <FormControl size="small" fullWidth>
+          <InputLabel id="r-lang">Right Language</InputLabel>
+          <Select
+            labelId="r-lang"
+            label="Right Language"
+            defaultValue={'ja'}
+            value={settings.rightLang}
+            onChange={(e) => handleChange('rightLang', e)}
+          >
+            {Object.keys(languageList).map((key, i) => {
+              return (
+                <MenuItem value={key} key={i}>
+                  {languageList[key].name}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
+      </Box>
+    </Container>
   );
 }

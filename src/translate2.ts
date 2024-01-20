@@ -45,7 +45,7 @@ export function azureTranslate(
   })
     .then((r) => r.json())
     .catch((error) => {
-      console.error(error);
+      console.error('Fetch API error:' + error);
       return 'Could not translate.';
     });
 }
