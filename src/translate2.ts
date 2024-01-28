@@ -6,11 +6,11 @@ export interface apiLanguage {
   name: string;
 }
 
-export function azureTranslate(
+export async function azureTranslate(
   text: string,
   source: string,
   target: string
-) {
+): Promise<any> {
   let endpoint = 'https://api.cognitive.microsofttranslator.com';
 
   // location, also known as region.
@@ -36,18 +36,23 @@ export function azureTranslate(
 
   console.log(fetchObject);
 
-  return fetch('http://localhost:8080/api/translate', {
-    method: 'POST',
-    body: JSON.stringify(fetchObject),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((r) => r.json())
-    .catch((error) => {
-      console.error('Fetch API error:' + error);
-      return 'Could not translate.';
-    });
+  const response = await fetch(
+    'http://localhost:8080/api/translate',
+    {
+      method: 'POST',
+      body: JSON.stringify(fetchObject),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return { error: response.status };
+  }
+
+  const translatedData = await response.json();
+  return translatedData; // Return the translated data
 }
 
 export function azureLanguages() {

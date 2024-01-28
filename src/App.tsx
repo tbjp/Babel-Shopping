@@ -257,9 +257,20 @@ function CheckboxList() {
     azureTranslate(text, fromLang, toLang).then((x) => {
       console.log(x);
       if (x.error) {
-        // Handle no transliteration.
-        item.targetLang = 'Language pair not available.';
-        item.translit = '';
+        if (x.error === 429) {
+          item.targetLang = 'Too many requests.';
+          item.translit = 'Please wait 15 minutes.';
+        } else if (x.error.code === 400036) {
+          item.targetLang = 'Invalid target language';
+          item.translit = 'Error';
+        } else if (x.error.code) {
+          // Handle azure error code object
+          item.targetLang = x.error.code;
+          item.translit = 'Error';
+        } else {
+          item.targetLang = '';
+          item.translit = 'Unknown error';
+        }
       } else if (reverseFlag) {
         // Missing transliteration from left side
         item.nativeLang = x[0].translations[0].text;
