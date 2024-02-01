@@ -267,6 +267,10 @@ function CheckboxList() {
           // Handle azure error code object
           item.targetLang = x.error.code;
           item.translit = 'Error';
+        } else if (x.error === 'TOOLONG') {
+          console.log('Error: Input was too long.');
+          item.translit = 'Please input less than 50 letters.';
+          item.targetLang = 'Item too long.';
         } else {
           item.targetLang = '';
           item.translit = 'Unknown error';
@@ -290,7 +294,7 @@ function CheckboxList() {
 
   const middleServerTest = () => {
     console.log('Middle server test button clicked');
-    fetch('http://localhost:8080/test');
+    fetch('https://babel-api-relay.fly.dev/test');
   };
 
   return (

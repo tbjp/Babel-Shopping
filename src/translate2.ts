@@ -37,7 +37,7 @@ export async function azureTranslate(
   console.log(fetchObject);
 
   const response = await fetch(
-    'http://localhost:8080/api/translate',
+    'https://babel-api-relay.fly.dev/api/translate',
     {
       method: 'POST',
       body: JSON.stringify(fetchObject),
