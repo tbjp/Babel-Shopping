@@ -5,6 +5,8 @@ import React, {
   createContext,
   useContext,
 } from 'react';
+// import { useDebounceCallback } from 'usehooks-ts';
+import { debounce } from 'lodash';
 import logo from './logo.svg';
 import './App.css';
 import '@fontsource/roboto/300.css';
@@ -156,6 +158,10 @@ function CheckboxList() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [focusFlag, setFocusFlag] = useState<FocusFlag>('off');
   const { settings, setSettings } = useSettings();
+  const inputRefs = useRef<Array<HTMLInputElement>>([]);
+  const inputRefs2 = useRef<Array<HTMLInputElement>>([]);
+  const inputRefs3 = useRef<Array<HTMLInputElement>>([]);
+  const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const index: number = currentIndex;
@@ -173,10 +179,6 @@ function CheckboxList() {
     }
     setFocusFlag('off');
   }, [currentIndex, focusFlag]);
-
-  const inputRefs = useRef<Array<HTMLInputElement>>([]);
-  const inputRefs2 = useRef<Array<HTMLInputElement>>([]);
-  const inputRefs3 = useRef<Array<HTMLInputElement>>([]);
 
   // Other functions
 
@@ -228,10 +230,13 @@ function CheckboxList() {
         });
         setCurrentIndex(index);
         setFocusFlag(flag);
+      } else {
+        debouncedTranslate(index);
       }
     };
 
   const translateItem = (index: number) => () => {
+    console.log('translateItem called.');
     const newList = [...list];
     const item = newList[index];
     var text: string;
@@ -243,6 +248,7 @@ function CheckboxList() {
       item.targetLang.trim() === '' &&
       item.nativeLang.trim() === ''
     ) {
+      console.log('String is empty.');
       return;
     } else if (item.nativeLang.trim() === '') {
       text = item.targetLang.trim(); // For when left input is empty
@@ -291,6 +297,20 @@ function CheckboxList() {
       return x;
     });
   };
+
+  const debouncedTranslate = (index: number) => {
+    if (timeout.current !== null) {
+      clearTimeout(timeout.current);
+    }
+
+    timeout.current = setTimeout(translateItem(index), 1000);
+  };
+  // const debouncedTranslate = useRef(
+  //   useDebounceCallback((index: number) => {
+  //     console.log('Debounce on ' + index + '.');
+  //     translateItem(index);
+  //   }, 500)
+  // ); // Debounce for 500 milliseconds
 
   const middleServerTest = () => {
     console.log('Middle server test button clicked');
@@ -349,6 +369,7 @@ function CheckboxList() {
                       const newList = [...list];
                       newList[index].targetLang = e.target.value;
                       handleListChange(newList);
+                      debouncedTranslate(index);
                     }}
                   />
                 </FormControl>
@@ -365,9 +386,9 @@ function CheckboxList() {
                 >
                   <RemoveCircleOutlineIcon />
                 </IconButton>
-                <IconButton onClick={translateItem(index)}>
+                {/* <IconButton onClick={translateItem(index)}>
                   <TranslateIcon />
-                </IconButton>
+                </IconButton> */}
               </ListItem>
             </ListItem>
           );
