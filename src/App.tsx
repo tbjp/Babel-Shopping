@@ -37,6 +37,8 @@ import {
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import TranslateIcon from '@mui/icons-material/Translate';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
+import RestoreIcon from '@mui/icons-material/Restore';
 import { azureTranslate, azureLanguages } from './translate2';
 
 // Types and Interfaces
@@ -50,6 +52,7 @@ interface Language {
 interface Settings {
   leftLang: string;
   rightLang: string;
+  firstRun: string;
 }
 
 type SettingsContextType = {
@@ -68,6 +71,7 @@ interface AvailableLangs {
 type FocusFlag = 'off' | 'left' | 'right';
 
 const defaultSettings: Settings = {
+  firstRun: 'true',
   leftLang: 'en',
   rightLang: 'ja',
 };
@@ -130,24 +134,34 @@ function CheckboxList() {
       : [
           {
             nativeLang: 'Cheese',
-            targetLang: 'チーズ',
+            targetLang: ' ',
             translit: '',
             checked: false,
           },
           {
-            nativeLang: 'Milk',
-            targetLang: 'ミルク',
+            nativeLang: 'Bread',
+            targetLang: ' ',
             translit: '',
             checked: false,
           },
           {
-            nativeLang: 'Chocolate',
-            targetLang: 'チョコ',
+            nativeLang: 'Water',
+            targetLang: ' ',
             translit: '',
             checked: false,
           },
         ];
   });
+  const [clearedList, setClearedList] = useState<Language[]>([
+    {
+      nativeLang: 'ClearedList',
+      targetLang: ' ',
+      translit: '',
+      checked: false,
+    },
+  ]);
+  const [showRestoreButton, setShowRestoreButton] =
+    useState<boolean>(false);
 
   React.useEffect(() => {
     localStorage.setItem('user-list', JSON.stringify(list));
@@ -243,6 +257,7 @@ function CheckboxList() {
 
   const translateItem = (index: number) => () => {
     console.log('translateItem called.');
+    setShowRestoreButton(false); // To stop accidental presses
     const newList = [...list];
     const item = newList[index];
     var text: string;
@@ -299,8 +314,6 @@ function CheckboxList() {
         }
       }
 
-      //newList.splice(index, 1, item);
-      //setList(newList);
       setList(([...list]) => [...list]);
       return x;
     });
@@ -323,10 +336,44 @@ function CheckboxList() {
   //   timeout.current = setTimeout(translateItem(index), 1000);
   // };
 
+  const clearAll = () => {
+    const currentList = [...list];
+    setClearedList(currentList);
+    const emptyList = [
+      {
+        nativeLang: '',
+        targetLang: '',
+        translit: '',
+        checked: false,
+      },
+    ];
+    setList(emptyList);
+    setShowRestoreButton(true);
+  };
+
+  const restoreClearedList = () => {
+    console.log(clearedList);
+    const restoredList = [...clearedList];
+    setList(restoredList);
+    setShowRestoreButton(false);
+  };
+
   const middleServerTest = () => {
     console.log('Middle server test button clicked');
     fetch('https://babel-api-relay.fly.dev/test');
   };
+
+  // First run useEffect. Translate example items.
+  useEffect(() => {
+    if (settings.firstRun === 'true') {
+      debouncedTranslate(0);
+      debouncedTranslate(1);
+      debouncedTranslate(2);
+      const newSettings = { ...settings };
+      newSettings.firstRun = 'false';
+      setSettings(newSettings);
+    }
+  }, []);
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
@@ -408,8 +455,19 @@ function CheckboxList() {
           <IconButton onClick={() => addListItem(list)}>
             <AddCircleOutlineIcon />
           </IconButton>
-          <IconButton onClick={() => middleServerTest()}>
+          {/* <IconButton onClick={() => middleServerTest()}>
             <TranslateIcon />
+          </IconButton> */}
+          <IconButton onClick={() => clearAll()}>
+            <ClearAllIcon />
+          </IconButton>
+          <IconButton
+            style={{
+              display: showRestoreButton ? 'initial' : 'none',
+            }}
+            onClick={() => restoreClearedList()}
+          >
+            <RestoreIcon />
           </IconButton>
         </ListItem>
       </List>
