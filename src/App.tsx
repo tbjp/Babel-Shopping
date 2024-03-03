@@ -161,7 +161,7 @@ function CheckboxList() {
   const inputRefs = useRef<Array<HTMLInputElement>>([]);
   const inputRefs2 = useRef<Array<HTMLInputElement>>([]);
   const inputRefs3 = useRef<Array<HTMLInputElement>>([]);
-  const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
 
   useEffect(() => {
     const index: number = currentIndex;
@@ -179,6 +179,12 @@ function CheckboxList() {
     }
     setFocusFlag('off');
   }, [currentIndex, focusFlag]);
+
+  useEffect(() => {
+    return () => {
+      timeouts.current.forEach((timeout) => clearTimeout(timeout));
+    };
+  }, []);
 
   // Other functions
 
@@ -292,25 +298,30 @@ function CheckboxList() {
           item.translit = '';
         }
       }
-      newList.splice(index, 1, item);
-      setList(newList);
+
+      //newList.splice(index, 1, item);
+      //setList(newList);
+      setList(([...list]) => [...list]);
       return x;
     });
   };
 
   const debouncedTranslate = (index: number) => {
-    if (timeout.current !== null) {
-      clearTimeout(timeout.current);
+    if (timeouts.current.has(index)) {
+      clearTimeout(timeouts.current.get(index));
     }
 
-    timeout.current = setTimeout(translateItem(index), 1000);
+    const newTimeout = setTimeout(translateItem(index), 1000);
+    timeouts.current.set(index, newTimeout);
   };
-  // const debouncedTranslate = useRef(
-  //   useDebounceCallback((index: number) => {
-  //     console.log('Debounce on ' + index + '.');
-  //     translateItem(index);
-  //   }, 500)
-  // ); // Debounce for 500 milliseconds
+
+  // const debouncedTranslate = (index: number) => {
+  //   if (timeout.current !== null) {
+  //     clearTimeout(timeout.current);
+  //   }
+
+  //   timeout.current = setTimeout(translateItem(index), 1000);
+  // };
 
   const middleServerTest = () => {
     console.log('Middle server test button clicked');
