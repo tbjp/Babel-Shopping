@@ -20,10 +20,40 @@ const theme = createTheme({
       defaultProps: {},
       styleOverrides: {
         root: {
-          margin: '0 0.5em',
+          margin: '0em 0.4em',
+        },
+        inputSizeSmall: {
+          padding: '5px 10px', // Adjust values as needed
         },
       },
     },
+    MuiInputBase: {
+      defaultProps: {
+        margin: 'dense',
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        size: 'small',
+      },
+    },
+    MuiListItem: {
+      styleOverrides: {
+        root: {
+          paddingTop: '0.05em',
+          paddingBottom: '0.05em',
+
+          // Optionally target dense ListItems:
+          // '&.Mui-dense': {
+          //   paddingTop: '2px',
+          //   paddingBottom: '2px',
+          // },
+        },
+      },
+    },
+  },
+  typography: {
+    fontSize: 14,
   },
 });
 

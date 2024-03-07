@@ -250,8 +250,6 @@ function CheckboxList() {
         });
         setCurrentIndex(index);
         setFocusFlag(flag);
-      } else {
-        debouncedTranslate(index);
       }
     };
 
@@ -352,7 +350,6 @@ function CheckboxList() {
   };
 
   const restoreClearedList = () => {
-    console.log(clearedList);
     const restoredList = [...clearedList];
     setList(restoredList);
     setShowRestoreButton(false);
@@ -405,6 +402,7 @@ function CheckboxList() {
                     const newList = [...list];
                     newList[index].nativeLang = e.target.value;
                     handleListChange(newList);
+                    debouncedTranslate(index);
                   }}
                 />
                 <FormControl>
@@ -424,6 +422,7 @@ function CheckboxList() {
                     onKeyPress={handleKeyPress(index, 'right')}
                     strikethru={item.checked}
                     onChange={(e) => {
+                      console.log('onChange triggered:' + e);
                       const newList = [...list];
                       newList[index].targetLang = e.target.value;
                       handleListChange(newList);
@@ -502,7 +501,7 @@ function SettingsPanel() {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="xs">
       <Box display="flex" justifyContent="center" alignItems="center">
         <FormControl size="small" fullWidth>
           <InputLabel id="l-lang">Left Language</InputLabel>
