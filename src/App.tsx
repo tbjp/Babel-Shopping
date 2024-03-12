@@ -36,9 +36,9 @@ import {
 } from '@mui/material';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import TranslateIcon from '@mui/icons-material/Translate';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import RestoreIcon from '@mui/icons-material/Restore';
+import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
 import { azureTranslate, azureLanguages } from './translate2';
 
 // Types and Interfaces
@@ -349,6 +349,14 @@ function CheckboxList() {
     setShowRestoreButton(true);
   };
 
+  const clearChecked = () => {
+    const currentList = [...list];
+    setClearedList(currentList);
+    const filteredList = currentList.filter((item) => !item.checked);
+    setList(filteredList);
+    setShowRestoreButton(true);
+  };
+
   const restoreClearedList = () => {
     const restoredList = [...clearedList];
     setList(restoredList);
@@ -459,6 +467,9 @@ function CheckboxList() {
           </IconButton> */}
           <IconButton onClick={() => clearAll()}>
             <ClearAllIcon />
+          </IconButton>
+          <IconButton onClick={() => clearChecked()}>
+            <RemoveDoneIcon />
           </IconButton>
           <IconButton
             style={{
