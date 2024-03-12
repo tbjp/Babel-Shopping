@@ -21,6 +21,21 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           margin: '0em 0.4em',
+          '&.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline':
+            {
+              border: '0px solid',
+              //borderColor: 'white',
+              //backgroundColor: 'grey',
+            },
+          '&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline':
+            {
+              borderColor: 'black',
+              border: '1px solid',
+            },
+          '&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+            {
+              borderColor: 'blue',
+            },
         },
         inputSizeSmall: {
           padding: '5px 10px', // Adjust values as needed

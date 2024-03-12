@@ -398,6 +398,7 @@ function CheckboxList() {
                 <StrikethroughInput
                   value={item.nativeLang}
                   size="small"
+                  color="error"
                   //autoFocus={true}
                   ref={(el) =>
                     (inputRefs.current[index] =
