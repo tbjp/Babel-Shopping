@@ -386,7 +386,9 @@ function CheckboxList() {
         sx={{
           width: 'fit-content',
           maxWidth: 720,
-          bgcolor: 'background.paper',
+          bgcolor: 'primary.dark',
+          borderRadius: 2,
+          boxShadow: 10,
         }}
       >
         {list.map((item, index) => {
@@ -394,7 +396,12 @@ function CheckboxList() {
 
           return (
             <ListItem key={index} disablePadding>
-              <ListItem role={undefined} dense>
+              <ListItem
+                divider={true}
+                sx={{ pt: 0.5 }}
+                role={undefined}
+                dense
+              >
                 <StrikethroughInput
                   value={item.nativeLang}
                   size="small"
@@ -415,7 +422,10 @@ function CheckboxList() {
                   }}
                 />
                 <FormControl>
-                  <InputLabel htmlFor="result-input">
+                  <InputLabel
+                    htmlFor="result-input"
+                    color="secondary"
+                  >
                     {item.translit}
                   </InputLabel>
                   <StrikethroughInput
@@ -440,12 +450,15 @@ function CheckboxList() {
                   />
                 </FormControl>
                 <Checkbox
+                  color="primary"
                   checked={item.checked}
                   onClick={handleToggle(index)}
                   tabIndex={-1}
                   inputProps={{ 'aria-labelledby': labelId }}
+                  sx={{ color: 'primary' }}
                 />
                 <IconButton
+                  color="primary"
                   edge="end"
                   aria-label="comments"
                   onClick={removeItem(index)}
@@ -514,7 +527,12 @@ function SettingsPanel() {
 
   return (
     <Container maxWidth="xs">
-      <Box display="flex" justifyContent="center" alignItems="center">
+      <Box
+        sx={{ pt: 1, pb: 1 }}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
         <FormControl size="small" fullWidth>
           <InputLabel id="l-lang">Left Language</InputLabel>
           <Select

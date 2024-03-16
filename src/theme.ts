@@ -1,18 +1,46 @@
 import { createTheme } from '@mui/material/styles';
-import { red } from '@mui/material/colors';
+import { teal, grey, deepOrange } from '@mui/material/colors';
 
+const darkMode: number = 1;
+
+const lightPalette = {
+  background: { default: teal[50] },
+  // palette values for light mode
+  primary: { main: teal[300] },
+  secondary: { main: deepOrange[500] },
+  divider: teal[50],
+  text: {
+    primary: grey[900],
+    secondary: grey[800],
+  },
+};
+
+const darkPalette = {
+  background: { default: teal[900] },
+  // palette values for light mode
+  primary: { main: teal[300] },
+  secondary: { main: deepOrange[500] },
+  divider: teal[900],
+  text: {
+    primary: grey[100],
+    secondary: grey[200],
+  },
+};
 // A custom theme for this app
 const theme = createTheme({
   palette: {
-    primary: {
-      main: '#556cd0',
-    },
-    secondary: {
-      main: '#19857b',
-    },
-    error: {
-      main: red.A400,
-    },
+    mode: darkMode === 0 ? 'light' : 'dark',
+    ...(darkMode === 0 ? lightPalette : darkPalette),
+    // : darkMode ? 'dark' : lightPalette,
+    // primary: {
+    //   main: '#556cd0',
+    // },
+    // secondary: {
+    //   main: '#19857b',
+    // },
+    // error: {
+    //   main: red.A400,
+    // },
   },
   components: {
     // Name of the component
@@ -34,7 +62,7 @@ const theme = createTheme({
             },
           '&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
             {
-              borderColor: 'blue',
+              borderColor: 'primary',
             },
         },
         inputSizeSmall: {
@@ -50,6 +78,13 @@ const theme = createTheme({
     MuiButton: {
       defaultProps: {
         size: 'small',
+      },
+    },
+    MuiCheckbox: {
+      styleOverrides: {
+        root: {
+          color: teal[300], // unchecked color
+        },
       },
     },
     MuiListItem: {
