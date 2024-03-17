@@ -53,6 +53,7 @@ interface Settings {
   leftLang: string;
   rightLang: string;
   firstRun: string;
+  darkMode: string;
 }
 
 type SettingsContextType = {
@@ -74,6 +75,7 @@ const defaultSettings: Settings = {
   firstRun: 'true',
   leftLang: 'en',
   rightLang: 'ja',
+  darkMode: 'dark',
 };
 
 const SettingsContext = createContext<
@@ -386,7 +388,8 @@ function CheckboxList() {
         sx={{
           width: 'fit-content',
           maxWidth: 720,
-          bgcolor: 'primary.dark',
+          bgcolor:
+            settings.darkMode === 'light' ? 'white' : 'primary.dark',
           borderRadius: 2,
           boxShadow: 10,
         }}
@@ -422,10 +425,7 @@ function CheckboxList() {
                   }}
                 />
                 <FormControl>
-                  <InputLabel
-                    htmlFor="result-input"
-                    color="secondary"
-                  >
+                  <InputLabel htmlFor="result-input">
                     {item.translit}
                   </InputLabel>
                   <StrikethroughInput
@@ -450,15 +450,15 @@ function CheckboxList() {
                   />
                 </FormControl>
                 <Checkbox
-                  color="primary"
+                  color="default"
                   checked={item.checked}
                   onClick={handleToggle(index)}
                   tabIndex={-1}
                   inputProps={{ 'aria-labelledby': labelId }}
-                  sx={{ color: 'primary' }}
+                  //sx={{ color: 'primary' }}
                 />
                 <IconButton
-                  color="primary"
+                  //color="primary"
                   edge="end"
                   aria-label="comments"
                   onClick={removeItem(index)}
