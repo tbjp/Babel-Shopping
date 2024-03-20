@@ -2,7 +2,7 @@ import { createTheme } from '@mui/material/styles';
 import { teal, grey, deepOrange } from '@mui/material/colors';
 import { text } from 'stream/consumers';
 
-const darkMode: string = 'dark';
+//const darkMode: string = 'dark';
 
 const lightPalette = {
   background: { default: teal[50] },
@@ -29,7 +29,7 @@ const darkPalette = {
   },
 };
 // A custom theme for this app
-const createBabelTheme = () =>
+const createBabelTheme = (darkMode: string) =>
   createTheme({
     palette: {
       mode: darkMode === 'light' ? 'light' : 'dark',

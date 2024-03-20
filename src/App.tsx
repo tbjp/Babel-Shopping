@@ -17,6 +17,7 @@ import {
   Box,
   Checkbox,
   Container,
+  CssBaseline,
   FormControl,
   Grid,
   IconButton,
@@ -31,15 +32,19 @@ import {
   OutlinedInput,
   Select,
   SelectChangeEvent,
+  ThemeProvider,
   Typography,
   styled,
+  Stack,
 } from '@mui/material';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import RestoreIcon from '@mui/icons-material/Restore';
 import RemoveDoneIcon from '@mui/icons-material/RemoveDone';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
 import { azureTranslate, azureLanguages } from './translate2';
+import createBabelTheme from './theme';
 
 // Types and Interfaces
 interface Language {
@@ -90,7 +95,7 @@ const StrikethroughInput = styled(OutlinedInput)(
   })
 );
 
-export default function App() {
+export default function ThemedAppWrapper() {
   const [settings, setSettings] = useState<Settings>(() => {
     console.log('Get settings from localStorage.');
     const storedSettings = localStorage.getItem('user-settings');
@@ -104,27 +109,43 @@ export default function App() {
     localStorage.setItem('user-settings', JSON.stringify(settings));
   }, [settings]);
 
+  const [theme, setTheme] = useState(
+    createBabelTheme(settings.darkMode)
+  ); // Initial theme
+
+  useEffect(() => {
+    // Update theme based on settings change
+    const newTheme = createBabelTheme(settings.darkMode);
+    setTheme(newTheme);
+  }, [settings.darkMode]);
+
   return (
     <SettingsContext.Provider value={{ settings, setSettings }}>
-      <Container maxWidth="md">
-        <Box
-          sx={{ my: 4 }}
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Typography
-            variant="h4"
-            component="h1"
-            gutterBottom
-            textAlign={'center'}
-          >
-            Babel List
-          </Typography>
-          <SettingsPanel />
-          <CheckboxList />
-        </Box>
-      </Container>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <App />
+      </ThemeProvider>
     </SettingsContext.Provider>
+  );
+}
+
+function App() {
+  return (
+    //<SettingsContext.Provider value={{ settings, setSettings }}>
+    <Container maxWidth="md">
+      <Box sx={{ my: 4 }} alignItems="center" justifyContent="center">
+        <Typography
+          variant="h4"
+          component="h1"
+          gutterBottom
+          textAlign={'center'}
+        >
+          Babel List
+        </Typography>
+        <SettingsPanel />
+        <CheckboxList />
+      </Box>
+    </Container>
   );
 }
 
@@ -169,14 +190,13 @@ function CheckboxList() {
     localStorage.setItem('user-list', JSON.stringify(list));
   }, [list]);
 
-  // Input references for focus()
-
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [focusFlag, setFocusFlag] = useState<FocusFlag>('off');
   const { settings, setSettings } = useSettings();
+
+  // Input references for focus()
   const inputRefs = useRef<Array<HTMLInputElement>>([]);
   const inputRefs2 = useRef<Array<HTMLInputElement>>([]);
-  const inputRefs3 = useRef<Array<HTMLInputElement>>([]);
   const timeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
 
   useEffect(() => {
@@ -365,10 +385,20 @@ function CheckboxList() {
     setShowRestoreButton(false);
   };
 
-  const middleServerTest = () => {
-    console.log('Middle server test button clicked');
-    fetch('https://babel-api-relay.fly.dev/test');
+  const toggleDarkMode = () => {
+    const currentSettings = { ...settings };
+    if (currentSettings.darkMode === 'light') {
+      currentSettings.darkMode = 'dark';
+    } else {
+      currentSettings.darkMode = 'light';
+    }
+    setSettings(currentSettings);
   };
+
+  // const middleServerTest = () => {
+  //   console.log('Middle server test button clicked');
+  //   fetch('https://babel-api-relay.fly.dev/test');
+  // };
 
   // First run useEffect. Translate example items.
   useEffect(() => {
@@ -383,119 +413,136 @@ function CheckboxList() {
   }, []);
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center">
-      <List
-        sx={{
-          width: 'fit-content',
-          maxWidth: 720,
-          bgcolor:
-            settings.darkMode === 'light' ? 'white' : 'primary.dark',
-          borderRadius: 2,
-          boxShadow: 10,
-        }}
-      >
-        {list.map((item, index) => {
-          const labelId = `checkbox-list-label-${item.checked}`;
+    <Stack display="flex" justifyContent="center" alignItems="center">
+      <Stack sx={{ width: 'fit-content', maxWidth: 720 }}>
+        <List
+          sx={{
+            bgcolor:
+              settings.darkMode === 'light'
+                ? 'white'
+                : 'primary.dark',
+            borderRadius: 2,
+            boxShadow: 10,
+          }}
+        >
+          {list.map((item, index) => {
+            const labelId = `checkbox-list-label-${item.checked}`;
 
-          return (
-            <ListItem key={index} disablePadding>
-              <ListItem
-                divider={true}
-                sx={{ pt: 0.5 }}
-                role={undefined}
-                dense
-              >
-                <StrikethroughInput
-                  value={item.nativeLang}
-                  size="small"
-                  color="error"
-                  //autoFocus={true}
-                  ref={(el) =>
-                    (inputRefs.current[index] =
-                      el as HTMLInputElement)
-                  }
-                  inputProps={{ 'aria-labelledby': labelId }}
-                  onKeyPress={handleKeyPress(index, 'left')}
-                  strikethru={item.checked}
-                  onChange={(e) => {
-                    const newList = [...list];
-                    newList[index].nativeLang = e.target.value;
-                    handleListChange(newList);
-                    debouncedTranslate(index);
-                  }}
-                />
-                <FormControl>
-                  <InputLabel htmlFor="result-input">
-                    {item.translit}
-                  </InputLabel>
+            return (
+              <ListItem key={index} disablePadding>
+                <ListItem
+                  divider={true}
+                  sx={{ pt: 0.5 }}
+                  role={undefined}
+                  dense
+                >
                   <StrikethroughInput
-                    id="result-input"
-                    value={item.targetLang}
+                    value={item.nativeLang}
                     size="small"
-                    label={item.translit}
+                    color="error"
+                    //autoFocus={true}
                     ref={(el) =>
-                      (inputRefs2.current[index] =
+                      (inputRefs.current[index] =
                         el as HTMLInputElement)
                     }
                     inputProps={{ 'aria-labelledby': labelId }}
-                    onKeyPress={handleKeyPress(index, 'right')}
+                    onKeyPress={handleKeyPress(index, 'left')}
                     strikethru={item.checked}
                     onChange={(e) => {
-                      console.log('onChange triggered:' + e);
                       const newList = [...list];
-                      newList[index].targetLang = e.target.value;
+                      newList[index].nativeLang = e.target.value;
                       handleListChange(newList);
                       debouncedTranslate(index);
                     }}
                   />
-                </FormControl>
-                <Checkbox
-                  color="default"
-                  checked={item.checked}
-                  onClick={handleToggle(index)}
-                  tabIndex={-1}
-                  inputProps={{ 'aria-labelledby': labelId }}
-                  //sx={{ color: 'primary' }}
-                />
-                <IconButton
-                  //color="primary"
-                  edge="end"
-                  aria-label="comments"
-                  onClick={removeItem(index)}
-                >
-                  <RemoveCircleOutlineIcon />
-                </IconButton>
-                {/* <IconButton onClick={translateItem(index)}>
+                  <FormControl>
+                    <InputLabel htmlFor="result-input">
+                      {item.translit}
+                    </InputLabel>
+                    <StrikethroughInput
+                      id="result-input"
+                      value={item.targetLang}
+                      size="small"
+                      label={item.translit}
+                      ref={(el) =>
+                        (inputRefs2.current[index] =
+                          el as HTMLInputElement)
+                      }
+                      inputProps={{ 'aria-labelledby': labelId }}
+                      onKeyPress={handleKeyPress(index, 'right')}
+                      strikethru={item.checked}
+                      onChange={(e) => {
+                        console.log('onChange triggered:' + e);
+                        const newList = [...list];
+                        newList[index].targetLang = e.target.value;
+                        handleListChange(newList);
+                        debouncedTranslate(index);
+                      }}
+                    />
+                  </FormControl>
+                  <Checkbox
+                    color="default"
+                    checked={item.checked}
+                    onClick={handleToggle(index)}
+                    tabIndex={-1}
+                    inputProps={{ 'aria-labelledby': labelId }}
+                    //sx={{ color: 'primary' }}
+                  />
+                  <IconButton
+                    //color="primary"
+                    edge="end"
+                    aria-label="comments"
+                    onClick={removeItem(index)}
+                  >
+                    <RemoveCircleOutlineIcon />
+                  </IconButton>
+                  {/* <IconButton onClick={translateItem(index)}>
                   <TranslateIcon />
                 </IconButton> */}
+                </ListItem>
               </ListItem>
-            </ListItem>
-          );
-        })}
-        <ListItem alignItems="center">
-          <IconButton onClick={() => addListItem(list)}>
-            <AddCircleOutlineIcon />
-          </IconButton>
-          {/* <IconButton onClick={() => middleServerTest()}>
+            );
+          })}
+        </List>
+        <Stack>
+          <Stack direction="row" justifyContent="left" p={0.5}>
+            <ListItem alignItems="center" disablePadding>
+              <IconButton
+                onClick={() => {
+                  addListItem(list);
+                  setCurrentIndex(list.length - 1);
+                  setFocusFlag('left');
+                }}
+              >
+                <AddCircleOutlineIcon />
+              </IconButton>
+              {/* <IconButton onClick={() => middleServerTest()}>
             <TranslateIcon />
           </IconButton> */}
-          <IconButton onClick={() => clearAll()}>
-            <ClearAllIcon />
-          </IconButton>
-          <IconButton onClick={() => clearChecked()}>
-            <RemoveDoneIcon />
-          </IconButton>
-          <IconButton
-            style={{
-              display: showRestoreButton ? 'initial' : 'none',
-            }}
-            onClick={() => restoreClearedList()}
-          >
-            <RestoreIcon />
-          </IconButton>
-        </ListItem>
-      </List>
-    </Box>
+              <IconButton onClick={() => clearAll()}>
+                <ClearAllIcon />
+              </IconButton>
+              <IconButton onClick={() => clearChecked()}>
+                <RemoveDoneIcon />
+              </IconButton>
+              <IconButton
+                style={{
+                  display: showRestoreButton ? 'initial' : 'none',
+                }}
+                onClick={() => restoreClearedList()}
+              >
+                <RestoreIcon />
+              </IconButton>
+            </ListItem>
+            <Stack direction="row" justifyContent="end">
+              <IconButton onClick={() => toggleDarkMode()}>
+                <Brightness4Icon />
+              </IconButton>
+            </Stack>
+          </Stack>
+        </Stack>
+      </Stack>
+    </Stack>
   );
 }
 
