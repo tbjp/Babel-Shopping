@@ -419,8 +419,8 @@ function CheckboxList() {
           sx={{
             bgcolor:
               settings.darkMode === 'light'
-                ? 'white'
-                : 'primary.dark',
+                ? 'primary.light'
+                : 'primary.main',
             borderRadius: 2,
             boxShadow: 10,
           }}
@@ -432,7 +432,10 @@ function CheckboxList() {
               <ListItem key={index} disablePadding>
                 <ListItem
                   divider={true}
-                  sx={{ pt: 0.5 }}
+                  sx={{
+                    pt: 0.5,
+                    bgcolor: item.checked ? 'primary.dark' : '',
+                  }}
                   role={undefined}
                   dense
                 >

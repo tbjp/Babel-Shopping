@@ -5,13 +5,14 @@ import { text } from 'stream/consumers';
 //const darkMode: string = 'dark';
 
 const lightPalette = {
-  background: { default: teal[50] },
+  background: { default: teal[100] },
   primary: {
     main: teal[300],
-    light: '#ffffff',
+    dark: teal[100],
+    light: teal[50],
   },
   secondary: { main: grey[50] },
-  divider: teal[50],
+  divider: teal[100],
   text: {
     primary: grey[900],
     secondary: grey[800],
@@ -20,9 +21,12 @@ const lightPalette = {
 
 const darkPalette = {
   background: { default: teal[900] },
-  primary: { main: teal[300] },
-  secondary: { main: deepOrange[500] },
-  divider: teal[100],
+  primary: {
+    main: teal[700],
+    dark: teal[800],
+  },
+  secondary: { main: deepOrange[600] },
+  divider: teal[800],
   text: {
     primary: grey[100],
     secondary: grey[200],
