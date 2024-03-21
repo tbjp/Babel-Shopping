@@ -11,7 +11,7 @@ const lightPalette = {
     dark: teal[100],
     light: teal[50],
   },
-  secondary: { main: grey[50] },
+  secondary: { main: deepOrange[800] },
   divider: teal[100],
   text: {
     primary: grey[900],
@@ -25,7 +25,7 @@ const darkPalette = {
     main: teal[700],
     dark: teal[800],
   },
-  secondary: { main: deepOrange[600] },
+  secondary: { main: deepOrange[300] },
   divider: teal[800],
   text: {
     primary: grey[100],

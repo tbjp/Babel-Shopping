@@ -199,6 +199,7 @@ function CheckboxList() {
   const inputRefs2 = useRef<Array<HTMLInputElement>>([]);
   const timeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
 
+  // Set focus to new input on the correct side
   useEffect(() => {
     const index: number = currentIndex;
     switch (focusFlag) {
@@ -275,7 +276,7 @@ function CheckboxList() {
       }
     };
 
-  const translateItem = (index: number) => () => {
+  const translateItem = (index: number, side: string) => () => {
     console.log('translateItem called.');
     setShowRestoreButton(false); // To stop accidental presses
     const newList = [...list];
@@ -289,17 +290,20 @@ function CheckboxList() {
       item.targetLang.trim() === '' &&
       item.nativeLang.trim() === ''
     ) {
-      console.log('String is empty.');
+      console.log('Strings are empty.');
       return;
-    } else if (item.nativeLang.trim() === '') {
+    } else if (side === 'right' && item.targetLang.trim() !== '') {
       text = item.targetLang.trim(); // For when left input is empty
       fromLang = settings.rightLang;
       toLang = settings.leftLang;
       reverseFlag = true;
-    } else {
+    } else if (side === 'left' && item.nativeLang.trim() !== '') {
       text = item.nativeLang.trim(); // For normal use
       fromLang = settings.leftLang;
       toLang = settings.rightLang;
+    } else {
+      console.log('String is empty on current side.');
+      return;
     }
     azureTranslate(text, fromLang, toLang).then((x) => {
       console.log(x);
@@ -339,12 +343,15 @@ function CheckboxList() {
     });
   };
 
-  const debouncedTranslate = (index: number) => {
+  const debouncedTranslate = (
+    index: number,
+    side: string = 'left'
+  ) => {
     if (timeouts.current.has(index)) {
       clearTimeout(timeouts.current.get(index));
     }
 
-    const newTimeout = setTimeout(translateItem(index), 1000);
+    const newTimeout = setTimeout(translateItem(index, side), 1000);
     timeouts.current.set(index, newTimeout);
   };
 
@@ -455,11 +462,14 @@ function CheckboxList() {
                       const newList = [...list];
                       newList[index].nativeLang = e.target.value;
                       handleListChange(newList);
-                      debouncedTranslate(index);
+                      debouncedTranslate(index, 'left');
                     }}
                   />
                   <FormControl>
-                    <InputLabel htmlFor="result-input">
+                    <InputLabel
+                      htmlFor="result-input"
+                      color="secondary"
+                    >
                       {item.translit}
                     </InputLabel>
                     <StrikethroughInput
@@ -479,7 +489,7 @@ function CheckboxList() {
                         const newList = [...list];
                         newList[index].targetLang = e.target.value;
                         handleListChange(newList);
-                        debouncedTranslate(index);
+                        debouncedTranslate(index, 'right');
                       }}
                     />
                   </FormControl>
@@ -489,10 +499,8 @@ function CheckboxList() {
                     onClick={handleToggle(index)}
                     tabIndex={-1}
                     inputProps={{ 'aria-labelledby': labelId }}
-                    //sx={{ color: 'primary' }}
                   />
                   <IconButton
-                    //color="primary"
                     edge="end"
                     aria-label="comments"
                     onClick={removeItem(index)}
