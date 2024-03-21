@@ -6,7 +6,7 @@ import React, {
   useContext,
 } from 'react';
 // import { useDebounceCallback } from 'usehooks-ts';
-import { debounce } from 'lodash';
+//import { debounce, forEach } from 'lodash';
 import logo from './logo.svg';
 import './App.css';
 import '@fontsource/roboto/300.css';
@@ -193,6 +193,7 @@ function CheckboxList() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [focusFlag, setFocusFlag] = useState<FocusFlag>('off');
   const { settings, setSettings } = useSettings();
+  const isMounted = useRef(false); //To stop useEffects running on reload
 
   // Input references for focus()
   const inputRefs = useRef<Array<HTMLInputElement>>([]);
@@ -217,6 +218,7 @@ function CheckboxList() {
     setFocusFlag('off');
   }, [currentIndex, focusFlag]);
 
+  // Clear timout so it doesn't keep running
   useEffect(() => {
     return () => {
       timeouts.current.forEach((timeout) => clearTimeout(timeout));
@@ -337,7 +339,7 @@ function CheckboxList() {
           item.translit = '';
         }
       }
-
+      // This is formatted to make react qeueue the changes
       setList(([...list]) => [...list]);
       return x;
     });
@@ -362,6 +364,28 @@ function CheckboxList() {
 
   //   timeout.current = setTimeout(translateItem(index), 1000);
   // };
+
+  // Translate whole list
+  const translateAll = (side: string) => {
+    const listArray = Array.from(
+      { length: list.length },
+      (_, index) => index
+    );
+    console.log(listArray);
+    listArray.forEach((index) => {
+      console.log('forEach' + index);
+      // Directly calling translateAll() doesn't work
+      debouncedTranslate(index, side);
+    });
+  };
+
+  // Call translateAll every time user changes setting
+  useEffect(() => {
+    translateAll('right');
+  }, [settings.leftLang]);
+  useEffect(() => {
+    translateAll('left');
+  }, [settings.rightLang]);
 
   const clearAll = () => {
     const currentList = [...list];
