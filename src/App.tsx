@@ -74,6 +74,11 @@ interface AvailableLangs {
   };
 }
 
+interface LoadingContextType {
+  isLoading: boolean;
+  setIsLoading: (newState: boolean) => void;
+}
+
 type FocusFlag = 'off' | 'left' | 'right';
 
 const defaultSettings: Settings = {
@@ -89,6 +94,11 @@ const SettingsContext = createContext<
 const useSettings = () =>
   useContext(SettingsContext) as SettingsContextType;
 
+const LoadingContext = createContext<LoadingContextType>({
+  isLoading: true,
+  setIsLoading: () => {},
+});
+
 const StrikethroughInput = styled(OutlinedInput)(
   ({ strikethru }: { strikethru: boolean }) => ({
     textDecoration: strikethru ? 'line-through' : 'none',
@@ -96,6 +106,7 @@ const StrikethroughInput = styled(OutlinedInput)(
 );
 
 export default function ThemedAppWrapper() {
+  const [isLoading, setIsLoading] = useState(true);
   const [settings, setSettings] = useState<Settings>(() => {
     console.log('Get settings from localStorage.');
     const storedSettings = localStorage.getItem('user-settings');
@@ -123,7 +134,9 @@ export default function ThemedAppWrapper() {
     <SettingsContext.Provider value={{ settings, setSettings }}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <App />
+        <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
+          <App />
+        </LoadingContext.Provider>
       </ThemeProvider>
     </SettingsContext.Provider>
   );
@@ -149,7 +162,85 @@ function App() {
   );
 }
 
+function SettingsPanel() {
+  const { isLoading, setIsLoading } = useContext(LoadingContext);
+  const [languageList, setLanguageList] = useState<AvailableLangs>({
+    en: { name: 'English', nativeName: 'English', dir: 'ltr' },
+    ja: { name: 'Japanese', nativeName: '日本語', dir: 'ltr' },
+  });
+
+  const { settings, setSettings } = useSettings();
+
+  useEffect(() => {
+    azureLanguages().then((azureList) => {
+      setLanguageList(azureList.translation);
+      console.log(azureList.translation);
+    });
+  }, []);
+
+  const handleChange = (
+    settingId: string,
+    event: SelectChangeEvent
+  ) => {
+    const newSettings = { ...settings };
+    const keyTyped = settingId as keyof typeof newSettings;
+    newSettings[keyTyped] = event.target.value;
+    setSettings(newSettings);
+    console.log(event.target.value);
+    setIsLoading(false);
+  };
+
+  return (
+    <Container maxWidth="xs">
+      <Box
+        sx={{ pt: 1, pb: 1 }}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <FormControl size="small" fullWidth>
+          <InputLabel id="l-lang">Left Language</InputLabel>
+          <Select
+            labelId="l-lang"
+            label="Left Language"
+            defaultValue={'en'}
+            value={settings.leftLang}
+            onChange={(e) => handleChange('leftLang', e)}
+          >
+            {Object.keys(languageList).map((key, i) => {
+              return (
+                <MenuItem value={key} key={i}>
+                  {languageList[key].name}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
+        <FormControl size="small" fullWidth>
+          <InputLabel id="r-lang">Right Language</InputLabel>
+          <Select
+            labelId="r-lang"
+            label="Right Language"
+            defaultValue={'ja'}
+            value={settings.rightLang}
+            onChange={(e) => handleChange('rightLang', e)}
+          >
+            {Object.keys(languageList).map((key, i) => {
+              return (
+                <MenuItem value={key} key={i}>
+                  {languageList[key].name}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
+      </Box>
+    </Container>
+  );
+}
+
 function CheckboxList() {
+  const { isLoading, setIsLoading } = useContext(LoadingContext);
   const [list, setList] = useState<Language[]>(() => {
     const storedList = localStorage.getItem('user-list');
     return storedList
@@ -381,10 +472,21 @@ function CheckboxList() {
 
   // Call translateAll every time user changes setting
   useEffect(() => {
-    translateAll('right');
+    console.log(
+      'leftLang changed, isLoading is currently: ' + isLoading
+    );
+    if (isLoading === false) {
+      console.log('if statement ran');
+      translateAll('right');
+    }
   }, [settings.leftLang]);
   useEffect(() => {
-    translateAll('left');
+    console.log(
+      'rightLang changed, isLoading is currently: ' + isLoading
+    );
+    if (isLoading === false) {
+      translateAll('left');
+    }
   }, [settings.rightLang]);
 
   const clearAll = () => {
@@ -471,6 +573,8 @@ function CheckboxList() {
                   dense
                 >
                   <StrikethroughInput
+                    //multiline
+                    //maxRows="3"
                     value={item.nativeLang}
                     size="small"
                     color="error"
@@ -479,7 +583,10 @@ function CheckboxList() {
                       (inputRefs.current[index] =
                         el as HTMLInputElement)
                     }
-                    inputProps={{ 'aria-labelledby': labelId }}
+                    inputProps={{
+                      'aria-labelledby': labelId,
+                      maxLength: 40,
+                    }}
                     onKeyPress={handleKeyPress(index, 'left')}
                     strikethru={item.checked}
                     onChange={(e) => {
@@ -497,6 +604,8 @@ function CheckboxList() {
                       {item.translit}
                     </InputLabel>
                     <StrikethroughInput
+                      //multiline
+                      //maxRows="3"
                       id="result-input"
                       value={item.targetLang}
                       size="small"
@@ -505,7 +614,10 @@ function CheckboxList() {
                         (inputRefs2.current[index] =
                           el as HTMLInputElement)
                       }
-                      inputProps={{ 'aria-labelledby': labelId }}
+                      inputProps={{
+                        'aria-labelledby': labelId,
+                        maxLength: 40,
+                      }}
                       onKeyPress={handleKeyPress(index, 'right')}
                       strikethru={item.checked}
                       onChange={(e) => {
@@ -578,80 +690,5 @@ function CheckboxList() {
         </Stack>
       </Stack>
     </Stack>
-  );
-}
-
-function SettingsPanel() {
-  const [languageList, setLanguageList] = useState<AvailableLangs>({
-    en: { name: 'English', nativeName: 'English', dir: 'ltr' },
-    ja: { name: 'Japanese', nativeName: '日本語', dir: 'ltr' },
-  });
-
-  const { settings, setSettings } = useSettings();
-
-  useEffect(() => {
-    azureLanguages().then((azureList) => {
-      setLanguageList(azureList.translation);
-      console.log(azureList.translation);
-    });
-  }, []);
-
-  const handleChange = (
-    settingId: string,
-    event: SelectChangeEvent
-  ) => {
-    const newSettings = { ...settings };
-    const keyTyped = settingId as keyof typeof newSettings;
-    newSettings[keyTyped] = event.target.value;
-    setSettings(newSettings);
-    console.log(event.target.value);
-  };
-
-  return (
-    <Container maxWidth="xs">
-      <Box
-        sx={{ pt: 1, pb: 1 }}
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <FormControl size="small" fullWidth>
-          <InputLabel id="l-lang">Left Language</InputLabel>
-          <Select
-            labelId="l-lang"
-            label="Left Language"
-            defaultValue={'en'}
-            value={settings.leftLang}
-            onChange={(e) => handleChange('leftLang', e)}
-          >
-            {Object.keys(languageList).map((key, i) => {
-              return (
-                <MenuItem value={key} key={i}>
-                  {languageList[key].name}
-                </MenuItem>
-              );
-            })}
-          </Select>
-        </FormControl>
-        <FormControl size="small" fullWidth>
-          <InputLabel id="r-lang">Right Language</InputLabel>
-          <Select
-            labelId="r-lang"
-            label="Right Language"
-            defaultValue={'ja'}
-            value={settings.rightLang}
-            onChange={(e) => handleChange('rightLang', e)}
-          >
-            {Object.keys(languageList).map((key, i) => {
-              return (
-                <MenuItem value={key} key={i}>
-                  {languageList[key].name}
-                </MenuItem>
-              );
-            })}
-          </Select>
-        </FormControl>
-      </Box>
-    </Container>
   );
 }
