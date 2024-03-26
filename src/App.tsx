@@ -587,9 +587,6 @@ function CheckboxList() {
                     }}
                   >
                     <StrikethroughInput
-                      //multiline
-                      //maxRows="3"
-                      //fullWidth
                       value={item.nativeLang}
                       size="small"
                       color="error"
@@ -623,14 +620,19 @@ function CheckboxList() {
                         {item.translit}
                       </InputLabel> */}
                       <Typography
+                        textAlign={'right'}
                         variant="caption"
-                        sx={{ ml: '1.4em', mb: '-0.8em' }}
+                        sx={{
+                          mr: '1.5em',
+                          mb: item.translit !== '' ? '-0.5em' : '0',
+                        }}
                       >
                         {item.translit}
                       </Typography>
                       <StrikethroughInput
-                        //multiline
-                        //maxRows="3"
+                        sx={{
+                          input: { textAlign: 'right' },
+                        }}
                         id="result-input"
                         value={item.targetLang}
                         size="small"

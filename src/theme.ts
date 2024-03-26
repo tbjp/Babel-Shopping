@@ -73,7 +73,7 @@ const createBabelTheme = (darkMode: string) =>
               },
           },
           inputSizeSmall: {
-            padding: '5px 10px', // Adjust values as needed
+            padding: '2px 10px', // Adjust values as needed
           },
         },
       },
