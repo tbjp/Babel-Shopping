@@ -5,8 +5,6 @@ import React, {
   createContext,
   useContext,
 } from 'react';
-// import { useDebounceCallback } from 'usehooks-ts';
-//import { debounce, forEach } from 'lodash';
 import logo from './logo.svg';
 import './App.css';
 import '@fontsource/roboto/300.css';
@@ -74,9 +72,9 @@ interface AvailableLangs {
   };
 }
 
-interface LoadingContextType {
-  isLoading: boolean;
-  setIsLoading: (newState: boolean) => void;
+interface LangChangeContextType {
+  langChangeUseEffect: boolean;
+  setLangChangeUseEffect: (newState: boolean) => void;
 }
 
 type FocusFlag = 'off' | 'left' | 'right';
@@ -94,9 +92,9 @@ const SettingsContext = createContext<
 const useSettings = () =>
   useContext(SettingsContext) as SettingsContextType;
 
-const LoadingContext = createContext<LoadingContextType>({
-  isLoading: true,
-  setIsLoading: () => {},
+const LangChangeContext = createContext<LangChangeContextType>({
+  langChangeUseEffect: true,
+  setLangChangeUseEffect: () => {},
 });
 
 const StrikethroughInput = styled(OutlinedInput)(
@@ -106,7 +104,8 @@ const StrikethroughInput = styled(OutlinedInput)(
 );
 
 export default function ThemedAppWrapper() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [langChangeUseEffect, setLangChangeUseEffect] =
+    useState(true);
   const [settings, setSettings] = useState<Settings>(() => {
     console.log('Get settings from localStorage.');
     const storedSettings = localStorage.getItem('user-settings');
@@ -134,9 +133,11 @@ export default function ThemedAppWrapper() {
     <SettingsContext.Provider value={{ settings, setSettings }}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
+        <LangChangeContext.Provider
+          value={{ langChangeUseEffect, setLangChangeUseEffect }}
+        >
           <App />
-        </LoadingContext.Provider>
+        </LangChangeContext.Provider>
       </ThemeProvider>
     </SettingsContext.Provider>
   );
@@ -163,7 +164,8 @@ function App() {
 }
 
 function SettingsPanel() {
-  const { isLoading, setIsLoading } = useContext(LoadingContext);
+  const { langChangeUseEffect, setLangChangeUseEffect } =
+    useContext(LangChangeContext);
   const [languageList, setLanguageList] = useState<AvailableLangs>({
     en: { name: 'English', nativeName: 'English', dir: 'ltr' },
     ja: { name: 'Japanese', nativeName: '日本語', dir: 'ltr' },
@@ -187,7 +189,7 @@ function SettingsPanel() {
     newSettings[keyTyped] = event.target.value;
     setSettings(newSettings);
     console.log(event.target.value);
-    setIsLoading(false);
+    setLangChangeUseEffect(false);
   };
 
   return (
@@ -240,7 +242,8 @@ function SettingsPanel() {
 }
 
 function CheckboxList() {
-  const { isLoading, setIsLoading } = useContext(LoadingContext);
+  const { langChangeUseEffect, setLangChangeUseEffect } =
+    useContext(LangChangeContext);
   const [list, setList] = useState<Language[]>(() => {
     const storedList = localStorage.getItem('user-list');
     return storedList
@@ -464,8 +467,7 @@ function CheckboxList() {
     );
     console.log(listArray);
     listArray.forEach((index) => {
-      console.log('forEach' + index);
-      // Directly calling translateAll() doesn't work
+      // Directly calling translateAll() doesn't work so call:
       debouncedTranslate(index, side);
     });
   };
@@ -473,18 +475,20 @@ function CheckboxList() {
   // Call translateAll every time user changes setting
   useEffect(() => {
     console.log(
-      'leftLang changed, isLoading is currently: ' + isLoading
+      'leftLang changed, langChangeUseEffect is currently: ' +
+        langChangeUseEffect
     );
-    if (isLoading === false) {
+    if (langChangeUseEffect === false) {
       console.log('if statement ran');
       translateAll('right');
     }
   }, [settings.leftLang]);
   useEffect(() => {
     console.log(
-      'rightLang changed, isLoading is currently: ' + isLoading
+      'rightLang changed, langChangeUseEffect is currently: ' +
+        langChangeUseEffect
     );
-    if (isLoading === false) {
+    if (langChangeUseEffect === false) {
       translateAll('left');
     }
   }, [settings.rightLang]);
@@ -547,7 +551,7 @@ function CheckboxList() {
 
   return (
     <Stack display="flex" justifyContent="center" alignItems="center">
-      <Stack sx={{ width: 'fit-content', maxWidth: 720 }}>
+      <Stack sx={{ minWidth: '95%', maxWidth: 720 }}>
         <List
           sx={{
             bgcolor:
@@ -567,68 +571,90 @@ function CheckboxList() {
                   divider={true}
                   sx={{
                     pt: 0.5,
+                    pl: 0,
                     bgcolor: item.checked ? 'primary.dark' : '',
                   }}
                   role={undefined}
                   dense
                 >
-                  <StrikethroughInput
-                    //multiline
-                    //maxRows="3"
-                    value={item.nativeLang}
-                    size="small"
-                    color="error"
-                    //autoFocus={true}
-                    ref={(el) =>
-                      (inputRefs.current[index] =
-                        el as HTMLInputElement)
-                    }
-                    inputProps={{
-                      'aria-labelledby': labelId,
-                      maxLength: 40,
+                  <Stack
+                    direction={'column'}
+                    sx={{
+                      //minWidth: '100%',
+                      width: '100%',
+                      maxWidth: 720,
+                      boxSizing: 'border-box',
                     }}
-                    onKeyPress={handleKeyPress(index, 'left')}
-                    strikethru={item.checked}
-                    onChange={(e) => {
-                      const newList = [...list];
-                      newList[index].nativeLang = e.target.value;
-                      handleListChange(newList);
-                      debouncedTranslate(index, 'left');
-                    }}
-                  />
-                  <FormControl>
-                    <InputLabel
-                      htmlFor="result-input"
-                      color="secondary"
-                    >
-                      {item.translit}
-                    </InputLabel>
+                  >
                     <StrikethroughInput
                       //multiline
                       //maxRows="3"
-                      id="result-input"
-                      value={item.targetLang}
+                      //fullWidth
+                      value={item.nativeLang}
                       size="small"
-                      label={item.translit}
+                      color="error"
+                      sx={{
+                        pt: 0,
+                      }}
+                      //autoFocus={true}
                       ref={(el) =>
-                        (inputRefs2.current[index] =
+                        (inputRefs.current[index] =
                           el as HTMLInputElement)
                       }
                       inputProps={{
                         'aria-labelledby': labelId,
                         maxLength: 40,
                       }}
-                      onKeyPress={handleKeyPress(index, 'right')}
+                      onKeyPress={handleKeyPress(index, 'left')}
                       strikethru={item.checked}
                       onChange={(e) => {
-                        console.log('onChange triggered:' + e);
                         const newList = [...list];
-                        newList[index].targetLang = e.target.value;
+                        newList[index].nativeLang = e.target.value;
                         handleListChange(newList);
-                        debouncedTranslate(index, 'right');
+                        debouncedTranslate(index, 'left');
                       }}
                     />
-                  </FormControl>
+                    <FormControl>
+                      {/* <InputLabel
+                        htmlFor="result-input"
+                        color="secondary"
+                        sx={{ ml: '0.5' }}
+                      >
+                        {item.translit}
+                      </InputLabel> */}
+                      <Typography
+                        variant="caption"
+                        sx={{ ml: '1.4em', mb: '-0.8em' }}
+                      >
+                        {item.translit}
+                      </Typography>
+                      <StrikethroughInput
+                        //multiline
+                        //maxRows="3"
+                        id="result-input"
+                        value={item.targetLang}
+                        size="small"
+                        label={item.translit}
+                        ref={(el) =>
+                          (inputRefs2.current[index] =
+                            el as HTMLInputElement)
+                        }
+                        inputProps={{
+                          'aria-labelledby': labelId,
+                          maxLength: 40,
+                        }}
+                        onKeyPress={handleKeyPress(index, 'right')}
+                        strikethru={item.checked}
+                        onChange={(e) => {
+                          console.log('onChange triggered:' + e);
+                          const newList = [...list];
+                          newList[index].targetLang = e.target.value;
+                          handleListChange(newList);
+                          debouncedTranslate(index, 'right');
+                        }}
+                      />
+                    </FormControl>
+                  </Stack>
                   <Checkbox
                     color="default"
                     checked={item.checked}
@@ -643,6 +669,7 @@ function CheckboxList() {
                   >
                     <RemoveCircleOutlineIcon />
                   </IconButton>
+
                   {/* <IconButton onClick={translateItem(index)}>
                   <TranslateIcon />
                 </IconButton> */}
