@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/Babel-Shopping/static/css/main.28242db8.css",
-    "main.js": "/Babel-Shopping/static/js/main.b69bd572.js",
+    "main.js": "/Babel-Shopping/static/js/main.cce05f5f.js",
     "static/js/592.f1ddf0ff.chunk.js": "/Babel-Shopping/static/js/592.f1ddf0ff.chunk.js",
     "static/media/roboto-latin-500-normal.woff2": "/Babel-Shopping/static/media/roboto-latin-500-normal.f25d774ecfe0996f8eb5.woff2",
     "static/media/roboto-latin-700-normal.woff2": "/Babel-Shopping/static/media/roboto-latin-700-normal.227c93190fe7f82de3f8.woff2",
@@ -61,11 +61,11 @@
     "static/media/roboto-greek-ext-700-normal.woff": "/Babel-Shopping/static/media/roboto-greek-ext-700-normal.249853776d22a271b2b5.woff",
     "index.html": "/Babel-Shopping/index.html",
     "main.28242db8.css.map": "/Babel-Shopping/static/css/main.28242db8.css.map",
-    "main.b69bd572.js.map": "/Babel-Shopping/static/js/main.b69bd572.js.map",
+    "main.cce05f5f.js.map": "/Babel-Shopping/static/js/main.cce05f5f.js.map",
     "592.f1ddf0ff.chunk.js.map": "/Babel-Shopping/static/js/592.f1ddf0ff.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.28242db8.css",
-    "static/js/main.b69bd572.js"
+    "static/js/main.cce05f5f.js"
   ]
 }
