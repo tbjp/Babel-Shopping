@@ -55,7 +55,9 @@ const createBabelTheme = (darkMode: string) =>
         defaultProps: {},
         styleOverrides: {
           root: {
-            margin: '0em 0.4em',
+            minWidth: '10em',
+            margin: '0em 0em',
+            padding: '0.2em 0 0.2em 0.75em',
             '&.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline':
               {
                 border: '0px solid',
@@ -71,9 +73,15 @@ const createBabelTheme = (darkMode: string) =>
               {
                 borderColor: 'primary',
               },
+            '& textarea': {
+              overflowY: 'scroll',
+              scrollbarWidth: 'none' /* For Firefox */,
+              '-ms-overflow-style':
+                'none' /* For Internet Explorer and Edge */,
+            },
           },
           inputSizeSmall: {
-            padding: '2px 10px', // Adjust values as needed
+            //padding: '2px 10px', // Adjust values as needed
           },
         },
       },

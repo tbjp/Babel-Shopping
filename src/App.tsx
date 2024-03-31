@@ -34,6 +34,7 @@ import {
   Typography,
   styled,
   Stack,
+  Hidden,
 } from '@mui/material';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -491,6 +492,7 @@ function CheckboxList() {
     if (langChangeUseEffect === false) {
       translateAll('left');
     }
+    setLangChangeUseEffect(true);
   }, [settings.rightLang]);
 
   const clearAll = () => {
@@ -578,20 +580,23 @@ function CheckboxList() {
                   dense
                 >
                   <Stack
-                    direction={'column'}
+                    direction={'row'}
                     sx={{
                       //minWidth: '100%',
                       width: '100%',
                       maxWidth: 720,
-                      boxSizing: 'border-box',
+                      //boxSizing: 'border-box',
                     }}
                   >
                     <StrikethroughInput
+                      multiline
+                      maxRows={2}
                       value={item.nativeLang}
                       size="small"
                       color="error"
                       sx={{
                         pt: 0,
+                        flex: 1,
                       }}
                       //autoFocus={true}
                       ref={(el) =>
@@ -611,8 +616,10 @@ function CheckboxList() {
                         debouncedTranslate(index, 'left');
                       }}
                     />
-                    <FormControl>
-                      {/* <InputLabel
+                    <Stack direction={'column'} sx={{ flex: 1 }}>
+                      {/*
+                    <FormControl></FormControl>
+                    <InputLabel
                         htmlFor="result-input"
                         color="secondary"
                         sx={{ ml: '0.5' }}
@@ -620,18 +627,23 @@ function CheckboxList() {
                         {item.translit}
                       </InputLabel> */}
                       <Typography
-                        textAlign={'right'}
+                        textAlign={'left'}
                         variant="caption"
                         sx={{
-                          mr: '1.5em',
+                          ml: '1.15em',
                           mb: item.translit !== '' ? '-0.5em' : '0',
                         }}
                       >
                         {item.translit}
                       </Typography>
                       <StrikethroughInput
+                        fullWidth
+                        multiline
+                        maxRows={2}
                         sx={{
-                          input: { textAlign: 'right' },
+                          input: {
+                            textAlign: 'left',
+                          },
                         }}
                         id="result-input"
                         value={item.targetLang}
@@ -655,7 +667,7 @@ function CheckboxList() {
                           debouncedTranslate(index, 'right');
                         }}
                       />
-                    </FormControl>
+                    </Stack>
                   </Stack>
                   <Checkbox
                     color="default"
