@@ -288,27 +288,33 @@ function CheckboxList() {
   const isMounted = useRef(false); //To stop useEffects running on reload
 
   // Input references for focus()
-  const inputRefs = useRef<Array<HTMLInputElement>>([]);
-  const inputRefs2 = useRef<Array<HTMLInputElement>>([]);
+  const inputRefs = useRef<Array<HTMLTextAreaElement>>([]);
+  const inputRefs2 = useRef<Array<HTMLTextAreaElement>>([]);
   const timeouts = useRef<Map<number, NodeJS.Timeout>>(new Map());
 
   // Set focus to new input on the correct side
   useEffect(() => {
+    console.log('Focus useEffect called on ' + currentIndex);
     const index: number = currentIndex;
     switch (focusFlag) {
       case 'off':
+        console.log('Focus flag is ' + focusFlag);
         break;
       case 'left':
-        inputRefs.current[index + 1]?.querySelector('input')?.focus();
+        console.log('Focus flag is ' + focusFlag);
+        inputRefs.current[index + 1]
+          ?.querySelector('textarea')
+          ?.focus();
         break;
       case 'right':
+        console.log('Focus flag is ' + focusFlag);
         inputRefs2.current[index + 1]
-          ?.querySelector('input')
+          ?.querySelector('textarea')
           ?.focus();
         break;
     }
     setFocusFlag('off');
-  }, [currentIndex, focusFlag]);
+  }, [currentIndex]);
 
   // Clear timout so it doesn't keep running
   useEffect(() => {
@@ -349,26 +355,31 @@ function CheckboxList() {
     });
   };
 
-  const handleKeyPress =
-    (index: number, flag: FocusFlag) =>
-    (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === 'Enter') {
-        console.log('Enter key pressed');
-        setList((prevList) => {
-          const blankLine = {
-            nativeLang: '',
-            targetLang: '',
-            translit: '',
-            checked: false,
-          };
-          const newList = [...prevList];
-          newList.splice(index + 1, 0, blankLine);
-          return newList;
-        });
-        setCurrentIndex(index);
-        setFocusFlag(flag);
-      }
-    };
+  const handleKeyPress = (
+    event: React.KeyboardEvent<
+      HTMLInputElement | HTMLTextAreaElement
+    >,
+    index: number,
+    flag: FocusFlag
+  ) => {
+    // (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      console.log('Enter key pressed');
+      setList((prevList) => {
+        const blankLine = {
+          nativeLang: '',
+          targetLang: '',
+          translit: '',
+          checked: false,
+        };
+        const newList = [...prevList];
+        newList.splice(index + 1, 0, blankLine);
+        return newList;
+      });
+      setCurrentIndex(index);
+      setFocusFlag(flag);
+    }
+  };
 
   const translateItem = (index: number, side: string) => () => {
     console.log('translateItem called.');
@@ -598,13 +609,18 @@ function CheckboxList() {
                       //autoFocus={true}
                       ref={(el) =>
                         (inputRefs.current[index] =
-                          el as HTMLInputElement)
+                          el as HTMLTextAreaElement)
                       }
                       inputProps={{
                         'aria-labelledby': labelId,
                         maxLength: 40,
                       }}
-                      onKeyPress={handleKeyPress(index, 'left')}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleKeyPress(e, index, 'left');
+                        }
+                      }}
                       strikethru={item.checked}
                       onChange={(e) => {
                         const newList = [...list];
@@ -648,13 +664,19 @@ function CheckboxList() {
                         label={item.translit}
                         ref={(el) =>
                           (inputRefs2.current[index] =
-                            el as HTMLInputElement)
+                            el as HTMLTextAreaElement)
                         }
                         inputProps={{
                           'aria-labelledby': labelId,
                           maxLength: 40,
                         }}
-                        onKeyPress={handleKeyPress(index, 'right')}
+                        //onKeyPress={handleKeyPress(index, 'right')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleKeyPress(e, index, 'right');
+                          }
+                        }}
                         strikethru={item.checked}
                         onChange={(e) => {
                           console.log('onChange triggered:' + e);
