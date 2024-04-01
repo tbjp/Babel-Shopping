@@ -55,7 +55,7 @@ const createBabelTheme = (darkMode: string) =>
         defaultProps: {},
         styleOverrides: {
           root: {
-            minWidth: '10em',
+            minWidth: '6em',
             margin: '0em 0em',
             padding: '0.2em 0 0.2em 0.75em',
             '&.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline':
@@ -79,9 +79,6 @@ const createBabelTheme = (darkMode: string) =>
               '-ms-overflow-style':
                 'none' /* For Internet Explorer and Edge */,
             },
-          },
-          inputSizeSmall: {
-            //padding: '2px 10px', // Adjust values as needed
           },
         },
       },

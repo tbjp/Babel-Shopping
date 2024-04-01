@@ -23,9 +23,6 @@ import {
   InputLabel,
   List,
   ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
   MenuItem,
   OutlinedInput,
   Select,
@@ -434,7 +431,7 @@ function CheckboxList() {
           item.translit = '';
         }
       }
-      // This is formatted to make react qeueue the changes
+      // This is formatted to make react queue the changes
       setList(([...list]) => [...list]);
       return x;
     });
@@ -683,6 +680,10 @@ function CheckboxList() {
                   >
                     <RemoveCircleOutlineIcon />
                   </IconButton>
+                  {/* <div
+                        className="reorder-handle"
+                        onPointerDown={(e) => controls.start(e)}
+                      > */}
 
                   {/* <IconButton onClick={translateItem(index)}>
                   <TranslateIcon />

@@ -52,14 +52,14 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.1.1",
-    "react-app-rewired": "^2.2.1",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
+    "gh-pages": "^6.1.1",
     "https-browserify": "^1.0.0",
     "os-browserify": "^0.3.0",
     "process": "^0.11.10",
+    "react-app-rewired": "^2.2.1",
     "react-error-overlay": "^6.0.9",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
