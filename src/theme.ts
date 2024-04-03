@@ -87,11 +87,6 @@ const createBabelTheme = (darkMode: string) =>
           margin: 'dense',
         },
       },
-      MuiButton: {
-        defaultProps: {
-          size: 'small',
-        },
-      },
       MuiCheckbox: {
         styleOverrides: {
           root: {

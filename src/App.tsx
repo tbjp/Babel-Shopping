@@ -32,6 +32,8 @@ import {
   styled,
   Stack,
   Hidden,
+  InputAdornment,
+  LinearProgress,
 } from '@mui/material';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -76,6 +78,10 @@ interface LangChangeContextType {
 }
 
 type FocusFlag = 'off' | 'left' | 'right';
+
+type APILoading = {
+  [index: number]: { left: boolean; right: boolean };
+};
 
 const defaultSettings: Settings = {
   firstRun: 'true',
@@ -285,7 +291,7 @@ function CheckboxList() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [focusFlag, setFocusFlag] = useState<FocusFlag>('off');
   const { settings, setSettings } = useSettings();
-  const isMounted = useRef(false); //To stop useEffects running on reload
+  const [isAPILoading, setIsAPILoading] = useState<APILoading>({});
 
   // Input references for focus()
   const inputRefs = useRef<Array<HTMLTextAreaElement>>([]);
@@ -383,6 +389,7 @@ function CheckboxList() {
 
   const translateItem = (index: number, side: string) => () => {
     console.log('translateItem called.');
+
     setShowRestoreButton(false); // To stop accidental presses
     const newList = [...list];
     const item = newList[index];
@@ -410,42 +417,54 @@ function CheckboxList() {
       console.log('String is empty on current side.');
       return;
     }
-    azureTranslate(text, fromLang, toLang).then((x) => {
-      console.log(x);
-      if (x.error) {
-        if (x.error === 429) {
-          item.targetLang = 'Too many requests.';
-          item.translit = 'Please wait 15 minutes.';
-        } else if (x.error.code === 400036) {
-          item.targetLang = 'Invalid target language';
-          item.translit = 'Error';
-        } else if (x.error.code) {
-          // Handle azure error code object
-          item.targetLang = x.error.code;
-          item.translit = 'Error';
-        } else if (x.error === 'TOOLONG') {
-          console.log('Error: Input was too long.');
-          item.translit = 'Please input less than 50 letters.';
-          item.targetLang = 'Item too long.';
+    setIsAPILoading((prev) => ({
+      ...prev,
+      [index]: { ...(prev[index] || {}), [side]: true },
+    }));
+    azureTranslate(text, fromLang, toLang)
+      .then((x) => {
+        console.log(x);
+        if (x.error) {
+          if (x.error === 429) {
+            item.targetLang = 'Too many requests.';
+            item.translit = 'Please wait 15 minutes.';
+          } else if (x.error.code === 400036) {
+            item.targetLang = 'Invalid target language';
+            item.translit = 'Error';
+          } else if (x.error.code) {
+            // Handle azure error code object
+            item.targetLang = x.error.code;
+            item.translit = 'Error';
+          } else if (x.error === 'TOOLONG') {
+            console.log('Error: Input was too long.');
+            item.translit = 'Please input less than 50 letters.';
+            item.targetLang = 'Item too long.';
+          } else {
+            item.targetLang = '';
+            item.translit = 'Unknown error';
+          }
+        } else if (reverseFlag) {
+          // Missing transliteration from left side
+          item.nativeLang = x[0].translations[0].text;
         } else {
-          item.targetLang = '';
-          item.translit = 'Unknown error';
+          item.targetLang = x[0].translations[0].text;
+          if (x[0].translations[0].transliteration) {
+            item.translit = x[0].translations[0].transliteration.text;
+          } else {
+            item.translit = '';
+          }
         }
-      } else if (reverseFlag) {
-        // Missing transliteration from left side
-        item.nativeLang = x[0].translations[0].text;
-      } else {
-        item.targetLang = x[0].translations[0].text;
-        if (x[0].translations[0].transliteration) {
-          item.translit = x[0].translations[0].transliteration.text;
-        } else {
-          item.translit = '';
-        }
-      }
-      // This is formatted to make react queue the changes
-      setList(([...list]) => [...list]);
-      return x;
-    });
+        // This is formatted to make react queue the changes
+        setList(([...list]) => [...list]);
+        return x;
+      })
+      .finally(() => {
+        setIsAPILoading((prev) => ({
+          ...prev,
+          [index]: { ...(prev[index] || {}), [side]: false },
+        }));
+        console.log(isAPILoading);
+      });
   };
 
   const debouncedTranslate = (
@@ -580,7 +599,7 @@ function CheckboxList() {
                 <ListItem
                   divider={true}
                   sx={{
-                    pt: 0.5,
+                    pt: 0,
                     pl: 0,
                     bgcolor: item.checked ? 'primary.dark' : '',
                   }}
@@ -596,39 +615,49 @@ function CheckboxList() {
                       //boxSizing: 'border-box',
                     }}
                   >
-                    <StrikethroughInput
-                      multiline
-                      maxRows={2}
-                      value={item.nativeLang}
-                      size="small"
-                      color="error"
-                      sx={{
-                        pt: 0,
-                        flex: 1,
-                      }}
-                      //autoFocus={true}
-                      ref={(el) =>
-                        (inputRefs.current[index] =
-                          el as HTMLTextAreaElement)
-                      }
-                      inputProps={{
-                        'aria-labelledby': labelId,
-                        maxLength: 40,
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleKeyPress(e, index, 'left');
+                    <Stack direction={'column'} sx={{ flex: 1 }}>
+                      <StrikethroughInput
+                        multiline
+                        maxRows={2}
+                        value={item.nativeLang}
+                        size="small"
+                        color="error"
+                        sx={{
+                          pt: 0,
+                          pb: 0,
+                          flex: 1,
+                        }}
+                        ref={(el) =>
+                          (inputRefs.current[index] =
+                            el as HTMLTextAreaElement)
                         }
-                      }}
-                      strikethru={item.checked}
-                      onChange={(e) => {
-                        const newList = [...list];
-                        newList[index].nativeLang = e.target.value;
-                        handleListChange(newList);
-                        debouncedTranslate(index, 'left');
-                      }}
-                    />
+                        inputProps={{
+                          'aria-labelledby': labelId,
+                          maxLength: 40,
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleKeyPress(e, index, 'left');
+                          }
+                        }}
+                        strikethru={item.checked}
+                        onChange={(e) => {
+                          const newList = [...list];
+                          newList[index].nativeLang = e.target.value;
+                          handleListChange(newList);
+                          debouncedTranslate(index, 'left');
+                        }}
+                      />
+                      <Box height={3} px={1}>
+                        {isAPILoading[index]?.['right'] && (
+                          <LinearProgress
+                            color={'secondary'}
+                            sx={{ height: 3 }}
+                          />
+                        )}
+                      </Box>
+                    </Stack>
                     <Stack direction={'column'} sx={{ flex: 1 }}>
                       {/*
                     <FormControl></FormControl>
@@ -654,6 +683,8 @@ function CheckboxList() {
                         multiline
                         maxRows={2}
                         sx={{
+                          pt: 0,
+                          pb: 0,
                           input: {
                             textAlign: 'left',
                           },
@@ -670,7 +701,6 @@ function CheckboxList() {
                           'aria-labelledby': labelId,
                           maxLength: 40,
                         }}
-                        //onKeyPress={handleKeyPress(index, 'right')}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
@@ -686,6 +716,14 @@ function CheckboxList() {
                           debouncedTranslate(index, 'right');
                         }}
                       />
+                      <Box height={3} px={1}>
+                        {isAPILoading[index]?.['left'] && (
+                          <LinearProgress
+                            color={'secondary'}
+                            sx={{ height: 3 }}
+                          />
+                        )}
+                      </Box>
                     </Stack>
                   </Stack>
                   <Checkbox
@@ -694,22 +732,16 @@ function CheckboxList() {
                     onClick={handleToggle(index)}
                     tabIndex={-1}
                     inputProps={{ 'aria-labelledby': labelId }}
+                    sx={{ py: 0.5, px: 1 }}
                   />
                   <IconButton
                     edge="end"
                     aria-label="comments"
                     onClick={removeItem(index)}
+                    sx={{ py: 0.5, px: 1 }}
                   >
                     <RemoveCircleOutlineIcon />
                   </IconButton>
-                  {/* <div
-                        className="reorder-handle"
-                        onPointerDown={(e) => controls.start(e)}
-                      > */}
-
-                  {/* <IconButton onClick={translateItem(index)}>
-                  <TranslateIcon />
-                </IconButton> */}
                 </ListItem>
               </ListItem>
             );
@@ -727,9 +759,6 @@ function CheckboxList() {
               >
                 <AddCircleOutlineIcon />
               </IconButton>
-              {/* <IconButton onClick={() => middleServerTest()}>
-            <TranslateIcon />
-          </IconButton> */}
               <IconButton onClick={() => clearAll()}>
                 <ClearAllIcon />
               </IconButton>
